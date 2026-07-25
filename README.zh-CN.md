@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  <a href="./README.md">English</a> | 简体中文
+  <a href="./README.md">English</a> | <a href="./README.ja.md">日本語</a> | <a href="./README.ko.md">한국어</a> | <a href="./README.vi.md">Tiếng Việt</a> | 简体中文
 </p>
 
 `sshw` 是一个轻量的 SSH 客户端包装工具，适合经常在多台服务器之间切换的用户。你只需要在 YAML 里维护主机信息，就可以通过可搜索的终端菜单选择目标，并让 `sshw` 自动使用对应的用户、端口、密钥、密码、SSH agent、跳板机和登录后回调命令打开会话。

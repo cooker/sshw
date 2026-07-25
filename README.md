@@ -11,7 +11,7 @@
 </p>
 
 <p align="center">
-  English | <a href="./README.zh-CN.md">简体中文</a>
+  English | <a href="./README.ja.md">日本語</a> | <a href="./README.ko.md">한국어</a> | <a href="./README.vi.md">Tiếng Việt</a> | <a href="./README.zh-CN.md">简体中文</a>
 </p>
 
 `sshw` is a small SSH client wrapper for people who jump between many servers. Define hosts once in YAML, pick one from a searchable terminal menu, and let `sshw` open the session with the right user, port, key, password, agent, jump host, and optional startup commands.
