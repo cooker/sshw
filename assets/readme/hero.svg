@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="380" viewBox="0 0 1200 380" role="img" aria-labelledby="title desc">
+  <title id="title">sshw interactive SSH launcher</title>
+  <desc id="desc">A terminal-inspired hero showing sshw turning YAML and SSH config entries into searchable host selection and SSH sessions.</desc>
+  <defs>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#10141a"/>
+      <stop offset="1" stop-color="#05070a"/>
+    </linearGradient>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#33d17a"/>
+      <stop offset="1" stop-color="#62a0ea"/>
+    </linearGradient>
+    <clipPath id="terminal-clip">
+      <rect x="0" y="48" width="492" height="248" rx="18"/>
+    </clipPath>
+  </defs>
+
+  <rect width="1200" height="380" rx="28" fill="#080b10"/>
+  <path d="M72 304H610" stroke="#27313d" stroke-width="1"/>
+  <path d="M72 84H610" stroke="#27313d" stroke-width="1"/>
+  <circle cx="88" cy="84" r="3" fill="#33d17a"/>
+  <circle cx="606" cy="304" r="3" fill="#62a0ea"/>
+
+  <g transform="translate(72 58)">
+    <text x="0" y="0" fill="#9aa7b2" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="600">SSH CLIENT WRAPPER</text>
+    <text x="0" y="82" fill="#f7f8fa" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, sans-serif" font-size="76" font-weight="760">sshw</text>
+    <text x="0" y="126" fill="#d8dee7" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, sans-serif" font-size="30" font-weight="520">Search, select, and open SSH sessions</text>
+    <text x="0" y="164" fill="#d8dee7" font-family="-apple-system, BlinkMacSystemFont, Segoe UI, PingFang SC, sans-serif" font-size="30" font-weight="520">from YAML or ~/.ssh/config.</text>
+
+    <g transform="translate(0 208)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="18" font-weight="600">
+      <rect x="0" y="0" width="126" height="38" rx="19" fill="#14231c" stroke="#285a3d"/>
+      <text x="20" y="25" fill="#90e0a8">alias</text>
+      <rect x="142" y="0" width="126" height="38" rx="19" fill="#111d2b" stroke="#294b72"/>
+      <text x="162" y="25" fill="#a6c8ff">groups</text>
+      <rect x="284" y="0" width="138" height="38" rx="19" fill="#211b12" stroke="#66512a"/>
+      <text x="304" y="25" fill="#e5c07b">jump host</text>
+      <rect x="438" y="0" width="142" height="38" rx="19" fill="#181b22" stroke="#3b4654"/>
+      <text x="458" y="25" fill="#c9d1d9">callbacks</text>
+    </g>
+  </g>
+
+  <g transform="translate(676 42)">
+    <rect x="0" y="0" width="492" height="296" rx="22" fill="#0d1117" stroke="#28313b" stroke-width="2"/>
+    <rect x="0" y="0" width="492" height="44" rx="22" fill="#161b22"/>
+    <path d="M0 44H492" stroke="#28313b" stroke-width="2"/>
+    <circle cx="28" cy="22" r="6" fill="#ff6b5f"/>
+    <circle cx="50" cy="22" r="6" fill="#f5c451"/>
+    <circle cx="72" cy="22" r="6" fill="#33d17a"/>
+    <text x="106" y="28" fill="#9aa7b2" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="16">~/.sshw.yml -> sshw</text>
+
+    <g clip-path="url(#terminal-clip)" font-family="ui-monospace, SFMono-Regular, Menlo, monospace">
+      <text x="28" y="82" fill="#33d17a" font-size="20">select host</text>
+      <text x="28" y="120" fill="#62a0ea" font-size="22" font-weight="700">> dev(app)</text>
+      <text x="58" y="148" fill="#9aa7b2" font-size="18">appuser@192.168.8.35</text>
+      <text x="28" y="188" fill="#f0f3f6" font-size="20">production</text>
+      <text x="58" y="216" fill="#9aa7b2" font-size="18">app-1  root@192.168.1.2</text>
+      <text x="58" y="244" fill="#9aa7b2" font-size="18">app-2  root@192.168.1.3</text>
+      <text x="28" y="284" fill="#e5c07b" font-size="18">$ sshw dev</text>
+    </g>
+  </g>
+
+  <g stroke="url(#accent)" stroke-width="2" fill="none" opacity="0.9">
+    <path d="M626 148C654 148 654 108 682 108"/>
+    <path d="M626 190C654 190 654 190 682 190"/>
+    <path d="M626 232C654 232 654 270 682 270"/>
+  </g>
+</svg>

@@ -1,81 +1,215 @@
 # sshw
 
-![GitHub](https://img.shields.io/github/license/yinheli/sshw) ![GitHub tag (latest by date)](https://img.shields.io/github/v/tag/yinheli/sshw)
+<p align="center">
+  <img src="./assets/readme/hero.svg" width="100%" alt="sshw turns YAML or SSH config entries into an interactive SSH launcher">
+</p>
 
-ssh client wrapper for automatic login.
+<p align="center">
+  <a href="https://github.com/yinheli/sshw/releases"><img src="https://img.shields.io/github/v/tag/yinheli/sshw?label=release" alt="Latest release"></a>
+  <a href="./LICENSE"><img src="https://img.shields.io/github/license/yinheli/sshw" alt="License"></a>
+  <a href="https://pkg.go.dev/github.com/yinheli/sshw"><img src="https://pkg.go.dev/badge/github.com/yinheli/sshw.svg" alt="Go package"></a>
+</p>
 
-![usage](./assets/sshw-demo.gif)
+<p align="center">
+  English | <a href="./README.zh-CN.md">简体中文</a>
+</p>
 
-## install
+`sshw` is a small SSH client wrapper for people who jump between many servers. Define hosts once in YAML, pick one from a searchable terminal menu, and let `sshw` open the session with the right user, port, key, password, agent, jump host, and optional startup commands.
 
-use `go get`
+![Interactive sshw demo](./assets/sshw-demo.gif)
 
-```
+## Why use it
+
+- Browse SSH targets in an interactive terminal selector instead of typing long `ssh` commands.
+- Search across nested host groups with `sshw -search <keyword>`.
+- Configure `~/.sshw.yaml` from a local web UI with `sshw -config`.
+- Connect directly by alias, for example `sshw dev`.
+- Organize hosts into nested groups for teams, environments, or network segments.
+- Use password, key file, passphrase key, SSH agent, or keyboard-interactive authentication.
+- Route through a configured jump host.
+- Import entries from `~/.ssh/config` with `sshw -s`.
+- Run optional callback commands after the remote shell opens.
+
+## Install
+
+Install the latest version with Go:
+
+```bash
 go install github.com/yinheli/sshw/cmd/sshw@latest
 ```
 
-or download binary from [releases](//github.com/yinheli/sshw/releases).
+You can also download prebuilt binaries from [GitHub Releases](https://github.com/yinheli/sshw/releases).
 
-## config
+## First run
 
-config file load in following order:
+Create a config file:
 
-- `~/.sshw`
-- `~/.sshw.yml`
-- `~/.sshw.yaml`
-- `./.sshw`
-- `./.sshw.yml`
-- `./.sshw.yaml`
+```bash
+touch ~/.sshw.yml
+```
 
-config example:
+Add at least one host:
 
-<!-- prettier-ignore -->
 ```yaml
-- { name: dev server fully configured, user: appuser, host: 192.168.8.35, port: 22, password: 123456 }
-- { name: dev server with key path, user: appuser, host: 192.168.8.35, port: 22, keypath: /root/.ssh/id_rsa }
-- { name: dev server with passphrase key, user: appuser, host: 192.168.8.35, port: 22, keypath: /root/.ssh/id_rsa, passphrase: abcdefghijklmn}
-- { name: dev server without port, user: appuser, host: 192.168.8.35 }
-- { name: dev server without user, host: 192.168.8.35 }
-- { name: dev server without password, host: 192.168.8.35 }
-- { name: ⚡️ server with emoji name, host: 192.168.8.35 }
-- { name: server with alias, alias: dev, host: 192.168.8.35 }
-- name: server with jump
+- name: dev
+  alias: dev
+  host: 192.168.8.35
+  user: appuser
+  port: 22
+  keypath: ~/.ssh/id_rsa
+```
+
+Open the selector:
+
+```bash
+sshw
+```
+
+Or connect by alias:
+
+```bash
+sshw dev
+```
+
+Search all configured hosts before opening the selector:
+
+```bash
+sshw -search dev
+```
+
+Start the local web config editor for `~/.sshw.yaml`:
+
+```bash
+sshw -config
+```
+
+## Configuration
+
+`sshw` loads the first config file it finds in this order:
+
+1. `~/.sshw`
+2. `~/.sshw.yml`
+3. `~/.sshw.yaml`
+4. `./.sshw`
+5. `./.sshw.yml`
+6. `./.sshw.yaml`
+
+To create or update `~/.sshw.yaml` from a local web UI, run:
+
+```bash
+sshw -config
+```
+
+The editor prints a local URL, serves only on `127.0.0.1` by default, and can add, edit, delete, and save hosts and groups. It supports common host fields, one jump host, callback commands, nested groups, and empty groups. To edit another file, pass `-config-file`:
+
+```bash
+sshw -config -config-file ./.sshw.yaml
+```
+
+To use a different local bind address:
+
+```bash
+sshw -config -config-addr 127.0.0.1:9000
+```
+
+Each entry can be a host or a group. Host fields:
+
+| Field | Purpose |
+| --- | --- |
+| `name` | Display name in the selector. |
+| `alias` | Optional shortcut used by `sshw <alias>`. |
+| `host` | Hostname or IP address. |
+| `user` | SSH username. Defaults to `root` when omitted. |
+| `port` | SSH port. Defaults to `22` when omitted. |
+| `password` | Password authentication value. |
+| `keypath` | Private key path. `~` is expanded. |
+| `passphrase` | Passphrase for the configured key. |
+| `agentpath` | SSH agent socket path. |
+| `jump` | One or more jump host definitions. |
+| `children` | Nested hosts or groups. |
+| `callback-shells` | Commands sent after the shell starts. |
+
+## Examples
+
+### Common hosts
+
+```yaml
+- { name: dev with password, alias: dev, user: appuser, host: 192.168.8.35, port: 22, password: 123456 }
+- { name: dev with key, user: appuser, host: 192.168.8.35, keypath: ~/.ssh/id_rsa }
+- { name: default root and port, host: 192.168.8.35 }
+- { name: "emoji host", alias: spark, host: 192.168.8.35 }
+```
+
+### Jump host
+
+```yaml
+- name: app via bastion
+  alias: app
   user: appuser
   host: 192.168.8.35
   port: 22
-  password: 123456
+  keypath: ~/.ssh/id_rsa
   jump:
-  - user: appuser
-    host: 192.168.8.36
-    port: 2222
-
-
-# server group 1
-- name: server group 1
-  children:
-  - { name: server 1, user: root, host: 192.168.1.2 }
-  - { name: server 2, user: root, host: 192.168.1.3 }
-  - { name: server 3, user: root, host: 192.168.1.4 }
-
-# server group 2
-- name: server group 2
-  children:
-  - { name: server 1, user: root, host: 192.168.2.2 }
-  - { name: server 2, user: root, host: 192.168.3.3 }
-  - { name: server 3, user: root, host: 192.168.4.4 }
+    - user: appuser
+      host: 192.168.8.36
+      port: 2222
+      keypath: ~/.ssh/bastion_rsa
 ```
 
-# callback
+### Groups
 
-<!-- prettier-ignore -->
 ```yaml
-- name: dev server fully configured
+- name: production
+  children:
+    - { name: app-1, user: root, host: 192.168.1.2 }
+    - { name: app-2, user: root, host: 192.168.1.3 }
+    - { name: app-3, user: root, host: 192.168.1.4 }
+```
+
+### Callback commands
+
+`callback-shells` sends commands to the remote shell after login. `delay` is measured in milliseconds.
+
+```yaml
+- name: dev with startup commands
+  alias: dev
   user: appuser
   host: 192.168.8.35
-  port: 22
-  password: 123456
+  keypath: ~/.ssh/id_rsa
   callback-shells:
-    - { cmd: 2 }
-    - { delay: 1500, cmd: 0 }
-    - { cmd: "echo 1" }
+    - { cmd: "cd /srv/app" }
+    - { delay: 1500, cmd: "docker ps" }
 ```
+
+## Use `~/.ssh/config`
+
+To build the selector from your local SSH config instead of `.sshw.yml`, run:
+
+```bash
+sshw -s
+```
+
+`sshw` reads `Host`, `HostName`, `User`, `Port`, `IdentityFile`, and `IdentityAgent` from `~/.ssh/config`.
+
+## Commands
+
+```text
+sshw             open the interactive selector
+sshw <alias>     connect to a configured alias
+sshw -s          load entries from ~/.ssh/config
+sshw -search dev search hosts by name, alias, user, host, or port
+sshw -config     edit ~/.sshw.yaml from a local web UI
+sshw -version    print build and Go version
+sshw -help       show flags
+```
+
+## Notes
+
+- Do not commit real passwords, private keys, or production host details to a public repository.
+- If `user` is omitted, `sshw` uses `root`.
+- If `port` is omitted, `sshw` uses `22`.
+- Jump host support currently uses the first configured jump entry.
+
+## License
+
+[MIT](./LICENSE)

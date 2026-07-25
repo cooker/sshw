@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"strings"
 
+	"github.com/atrox/homedir"
 	"github.com/manifoldco/promptui"
 	"github.com/yinheli/sshw"
 )
@@ -14,10 +15,14 @@ import (
 const prev = "-parent-"
 
 var (
-	Build = "devel"
-	V     = flag.Bool("version", false, "show version")
-	H     = flag.Bool("help", false, "show help")
-	S     = flag.Bool("s", false, "use local ssh config '~/.ssh/config'")
+	Build      = "devel"
+	V          = flag.Bool("version", false, "show version")
+	H          = flag.Bool("help", false, "show help")
+	S          = flag.Bool("s", false, "use local ssh config '~/.ssh/config'")
+	Search     = flag.String("search", "", "search hosts by name, alias, user, host, or port")
+	Config     = flag.Bool("config", false, "open web editor for ~/.sshw.yaml")
+	ConfigFile = flag.String("config-file", "~/.sshw.yaml", "config file used by -config")
+	ConfigAddr = flag.String("config-addr", "127.0.0.1:7899", "address used by -config")
 
 	log = sshw.GetLogger()
 
@@ -58,6 +63,20 @@ func main() {
 		fmt.Println("  go version :", runtime.Version())
 		return
 	}
+
+	if *Config {
+		configFile, err := homedir.Expand(*ConfigFile)
+		if err != nil {
+			log.Error("config error", err)
+			os.Exit(1)
+		}
+		if err := runConfigUI(configFile, *ConfigAddr); err != nil {
+			log.Error("config error", err)
+			os.Exit(1)
+		}
+		return
+	}
+
 	if *S {
 		err := sshw.LoadSshConfig()
 		if err != nil {
@@ -70,6 +89,16 @@ func main() {
 			log.Error("load config error", err)
 			os.Exit(1)
 		}
+	}
+
+	if *Search != "" {
+		node := chooseSearch(sshw.GetConfig(), *Search)
+		if node == nil {
+			return
+		}
+		client := sshw.NewClient(node)
+		client.Login()
+		return
 	}
 
 	// login by alias
@@ -93,6 +122,65 @@ func main() {
 	client.Login()
 }
 
+func chooseSearch(trees []*sshw.Node, query string) *sshw.Node {
+	nodes := searchHosts(trees, query)
+	if len(nodes) == 0 {
+		fmt.Printf("no hosts found matching %q\n", query)
+		return nil
+	}
+	return choose(nil, nodes)
+}
+
+func searchHosts(nodes []*sshw.Node, query string) []*sshw.Node {
+	var results []*sshw.Node
+	for _, node := range nodes {
+		if len(node.Children) > 0 {
+			results = append(results, searchHosts(node.Children, query)...)
+			continue
+		}
+		if nodeMatches(node, query) {
+			results = append(results, node)
+		}
+	}
+	return results
+}
+
+func nodeMatches(node *sshw.Node, input string) bool {
+	content := strings.ToLower(nodeSearchContent(node))
+	for _, key := range strings.Fields(strings.ToLower(input)) {
+		if !fuzzyContains(content, key) {
+			return false
+		}
+	}
+	return true
+}
+
+func fuzzyContains(content, query string) bool {
+	if query == "" {
+		return true
+	}
+	if strings.Contains(content, query) {
+		return true
+	}
+
+	contentRunes := []rune(content)
+	queryRunes := []rune(query)
+	queryIndex := 0
+	for _, r := range contentRunes {
+		if r == queryRunes[queryIndex] {
+			queryIndex++
+			if queryIndex == len(queryRunes) {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func nodeSearchContent(node *sshw.Node) string {
+	return fmt.Sprintf("%s %s %s %s %d", node.Name, node.Alias, node.User, node.Host, node.Port)
+}
+
 func choose(parent, trees []*sshw.Node) *sshw.Node {
 	prompt := promptui.Select{
 		Label:        "select host",
@@ -101,23 +189,7 @@ func choose(parent, trees []*sshw.Node) *sshw.Node {
 		Size:         20,
 		HideSelected: true,
 		Searcher: func(input string, index int) bool {
-			node := trees[index]
-			content := fmt.Sprintf("%s %s %s", node.Name, node.User, node.Host)
-			if strings.Contains(input, " ") {
-				for _, key := range strings.Split(input, " ") {
-					key = strings.TrimSpace(key)
-					if key != "" {
-						if !strings.Contains(content, key) {
-							return false
-						}
-					}
-				}
-				return true
-			}
-			if strings.Contains(content, input) {
-				return true
-			}
-			return false
+			return nodeMatches(trees[index], input)
 		},
 	}
 	index, _, err := prompt.Run()
