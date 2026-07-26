@@ -1,0 +1,435 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="sshw 是一个支持搜索、分组、跳板机和 Web 配置的轻量 SSH 客户端包装工具。">
+  <meta name="theme-color" content="#08110e">
+  <meta property="og:title" content="sshw — 更快地找到并连接 Server">
+  <meta property="og:description" content="用 YAML 管理 SSH Server，通过交互搜索或 Web 界面完成连接与配置。">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://cooker.github.io/sshw/">
+  <meta property="og:image" content="https://cooker.github.io/sshw/assets/og.png">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://cooker.github.io/sshw/">
+  <title>sshw — SSH Server 搜索与管理</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#main">跳到正文</a>
+
+  <header class="site-header">
+    <div class="header-inner">
+      <a class="brand" href="#top" aria-label="sshw 首页">
+        <span class="brand-mark" aria-hidden="true">&gt;_</span>
+        <span>sshw</span>
+      </a>
+      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">菜单</button>
+      <nav class="site-nav" id="site-nav" aria-label="主导航">
+        <a href="#install">安装</a>
+        <a href="#quickstart">快速开始</a>
+        <a href="#search">搜索</a>
+        <a href="#config-ui">Config Web</a>
+        <a href="#reference">配置参考</a>
+        <a class="nav-github" href="https://github.com/cooker/sshw">GitHub ↗</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="hero-grid">
+        <div class="hero-copy">
+          <p class="eyebrow">SSH CLIENT WRAPPER</p>
+          <h1>更快地找到并<br><span>连接 Server</span></h1>
+          <p class="hero-lead">用 YAML 维护主机信息，通过可搜索的终端菜单或本地 Web 界面，管理分组并打开 SSH 会话。</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#quickstart">5 分钟开始使用</a>
+            <a class="button secondary" href="https://github.com/cooker/sshw/releases">下载 Release</a>
+          </div>
+          <div class="install-line">
+            <code>go install github.com/yinheli/sshw/cmd/sshw@latest</code>
+            <button class="copy-button" type="button" data-copy="go install github.com/yinheli/sshw/cmd/sshw@latest" aria-label="复制安装命令">复制</button>
+          </div>
+        </div>
+        <div class="hero-terminal" aria-label="sshw 使用示例">
+          <div class="terminal-bar">
+            <span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>~/.sshw.yaml</span>
+          </div>
+          <div class="terminal-body">
+            <p><span class="prompt">$</span> sshw -search prod</p>
+            <p class="terminal-label">select host</p>
+            <p class="selected"><span>›</span> production / api-1</p>
+            <p class="muted">root@10.20.0.11:2222</p>
+            <p class="terminal-gap"><span class="prompt">$</span> sshw -config</p>
+            <p class="success">✓ config UI opened in browser</p>
+          </div>
+        </div>
+      </div>
+      <div class="feature-strip" aria-label="核心功能">
+        <span>交互搜索</span>
+        <span>嵌套分组</span>
+        <span>Jump Host</span>
+        <span>Config Web</span>
+        <span>Callback Commands</span>
+      </div>
+    </section>
+
+    <section class="section intro" id="overview">
+      <div class="section-heading">
+        <p class="eyebrow">WHY SSHW</p>
+        <h2>把连接信息写一次，之后只需搜索和选择</h2>
+        <p>sshw 读取 YAML 或 <code>~/.ssh/config</code>，自动处理用户、端口、密钥、密码、SSH Agent、跳板机和登录后命令。</p>
+      </div>
+      <figure class="demo-frame">
+        <img src="./assets/demo.gif" alt="sshw 交互式终端选择与连接演示" width="841" height="431" loading="lazy">
+        <figcaption>在终端中浏览配置、选择目标并打开 SSH 会话。</figcaption>
+      </figure>
+      <div class="benefit-grid">
+        <article>
+          <span class="card-index">01</span>
+          <h3>少记命令</h3>
+          <p>使用别名直连，或从交互列表中选择目标，不再重复输入完整的 SSH 参数。</p>
+        </article>
+        <article>
+          <span class="card-index">02</span>
+          <h3>容易整理</h3>
+          <p>按团队、环境或网段建立嵌套分组，大量 Server 也能保持清晰。</p>
+        </article>
+        <article>
+          <span class="card-index">03</span>
+          <h3>灵活认证</h3>
+          <p>支持密码、私钥、Passphrase、SSH Agent 和 Keyboard Interactive。</p>
+        </article>
+        <article>
+          <span class="card-index">04</span>
+          <h3>本地管理</h3>
+          <p>Config Web 默认只监听本机地址，保存时使用安全的原子替换流程。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section alt" id="install">
+      <div class="section-heading split-heading">
+        <div>
+          <p class="eyebrow">INSTALL</p>
+          <h2>选择一种安装方式</h2>
+        </div>
+        <p>推荐直接下载 Release。已安装 Go 的用户也可以使用一条命令安装最新版。</p>
+      </div>
+      <div class="install-grid">
+        <article class="install-card featured">
+          <div class="card-top"><span>推荐</span><strong>GitHub Release</strong></div>
+          <p>下载适合操作系统和 CPU 架构的压缩包，将二进制放入 <code>PATH</code>。</p>
+          <a class="text-link" href="https://github.com/cooker/sshw/releases">打开 Releases →</a>
+        </article>
+        <article class="install-card">
+          <div class="card-top"><span>Go</span><strong>Go Install</strong></div>
+          <pre><code>go install github.com/yinheli/sshw/cmd/sshw@latest</code></pre>
+          <button class="copy-inline" type="button" data-copy="go install github.com/yinheli/sshw/cmd/sshw@latest">复制命令</button>
+        </article>
+        <article class="install-card">
+          <div class="card-top"><span>Source</span><strong>源码编译</strong></div>
+          <pre><code>git clone https://github.com/cooker/sshw.git
+cd sshw
+./build.sh</code></pre>
+          <p>产物位于 <code>dist/&lt;os&gt;-&lt;arch&gt;/sshw</code>。</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="quickstart">
+      <div class="section-heading">
+        <p class="eyebrow">QUICK START</p>
+        <h2>三步打开第一个 SSH 会话</h2>
+        <p>先创建配置，再添加 Server，最后运行 <code>sshw</code>。</p>
+      </div>
+      <div class="steps">
+        <article class="step">
+          <div class="step-number">1</div>
+          <div class="step-content">
+            <h3>创建配置文件</h3>
+            <p>sshw 会按顺序查找用户目录和当前目录中的 <code>.sshw</code>、<code>.sshw.yml</code> 与 <code>.sshw.yaml</code>。</p>
+            <div class="code-block">
+              <pre><code>touch ~/.sshw.yaml</code></pre>
+              <button type="button" data-copy="touch ~/.sshw.yaml">复制</button>
+            </div>
+          </div>
+        </article>
+        <article class="step">
+          <div class="step-number">2</div>
+          <div class="step-content">
+            <h3>添加一台 Server</h3>
+            <p><code>name</code> 用于展示，<code>alias</code> 用于快捷连接。User 和 Port 可以省略。</p>
+            <div class="code-block">
+              <pre><code>- name: development
+  alias: dev
+  host: 192.168.8.35
+  user: appuser
+  port: 22
+  keypath: ~/.ssh/id_rsa</code></pre>
+              <button type="button" data-copy="- name: development&#10;  alias: dev&#10;  host: 192.168.8.35&#10;  user: appuser&#10;  port: 22&#10;  keypath: ~/.ssh/id_rsa">复制</button>
+            </div>
+          </div>
+        </article>
+        <article class="step">
+          <div class="step-number">3</div>
+          <div class="step-content">
+            <h3>选择或直接连接</h3>
+            <p>不带参数时打开交互选择器。知道 Alias 时，可以直接连接。</p>
+            <div class="command-pair">
+              <code>sshw</code>
+              <span>交互选择</span>
+              <code>sshw dev</code>
+              <span>Alias 直连</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section dark-section" id="search">
+      <div class="section-heading">
+        <p class="eyebrow">INTERACTIVE SEARCH</p>
+        <h2>输入、回退，再继续搜索</h2>
+        <p>搜索覆盖 Name、Alias、User、Host 和 Port，也会递归查找嵌套分组中的 Server。</p>
+      </div>
+      <div class="search-layout">
+        <div class="search-demo">
+          <div class="terminal-bar">
+            <span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span>interactive search</span>
+          </div>
+          <div class="terminal-body">
+            <p><span class="prompt">$</span> sshw -search prod</p>
+            <p class="terminal-label">select host: prod_</p>
+            <p class="selected"><span>›</span> production / api</p>
+            <p class="muted">deploy@10.0.12.8:2222</p>
+            <p class="muted">production / worker</p>
+            <p class="hint">Backspace 可删除初始关键词并恢复结果</p>
+          </div>
+        </div>
+        <div class="command-list">
+          <article>
+            <code>sshw -search</code>
+            <p>不带关键词，打开全部 Server 的交互搜索。</p>
+          </article>
+          <article>
+            <code>sshw -search prod</code>
+            <p>带初始关键词进入搜索，仍可继续输入或删除。</p>
+          </article>
+          <article>
+            <code>sshw -q prod</code>
+            <p><code>-q</code> 是 <code>-search</code> 的短命令。</p>
+          </article>
+          <article>
+            <code>sshw -s</code>
+            <p>从本地 <code>~/.ssh/config</code> 构建选择器。</p>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="config-ui">
+      <div class="section-heading split-heading">
+        <div>
+          <p class="eyebrow">CONFIG WEB</p>
+          <h2>在浏览器中管理分组与 Server</h2>
+        </div>
+        <p>运行命令后会自动打开本地页面。默认只监听 <code>127.0.0.1</code>，终端同时显示访问地址。</p>
+      </div>
+      <div class="config-command">
+        <div>
+          <span>打开默认配置</span>
+          <code>sshw -config</code>
+        </div>
+        <button type="button" data-copy="sshw -config">复制命令</button>
+      </div>
+      <div class="config-grid">
+        <article>
+          <span class="config-icon" aria-hidden="true">⌘</span>
+          <h3>分组管理</h3>
+          <p>创建、重命名、移动或删除嵌套分组，并查看每个分组中的 Server 数量。</p>
+        </article>
+        <article>
+          <span class="config-icon" aria-hidden="true">⌕</span>
+          <h3>即时搜索</h3>
+          <p>按名称、Alias、Host、User、Port 或完整分组路径过滤 Server。</p>
+        </article>
+        <article>
+          <span class="config-icon" aria-hidden="true">＋</span>
+          <h3>Server 管理</h3>
+          <p>新增、编辑、复制、移动和删除 Server，配置认证、Jump Host 与回调命令。</p>
+        </article>
+        <article>
+          <span class="config-icon" aria-hidden="true">文</span>
+          <h3>五种语言</h3>
+          <p>支持英语、简体中文、日语、韩语和越南语，并会记住本机选择。</p>
+        </article>
+      </div>
+      <div class="callout">
+        <strong>保存更安全</strong>
+        <p>界面显示未保存状态。写入时使用同目录临时文件和原子替换，并将新配置权限设置为 <code>0600</code>。</p>
+      </div>
+    </section>
+
+    <section class="section alt" id="reference">
+      <div class="section-heading">
+        <p class="eyebrow">CONFIG REFERENCE</p>
+        <h2>常用配置字段</h2>
+        <p>Server 是普通节点；Group 是带有 <code>children</code> 数组的节点。</p>
+      </div>
+      <div class="reference-layout">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>字段</th><th>作用</th><th>默认值</th></tr></thead>
+            <tbody>
+              <tr><td><code>name</code></td><td>选择器中的显示名称</td><td>—</td></tr>
+              <tr><td><code>alias</code></td><td><code>sshw &lt;alias&gt;</code> 快捷连接</td><td>—</td></tr>
+              <tr><td><code>host</code></td><td>主机名或 IP 地址</td><td>—</td></tr>
+              <tr><td><code>user</code></td><td>SSH 用户名</td><td><code>root</code></td></tr>
+              <tr><td><code>port</code></td><td>SSH 端口</td><td><code>22</code></td></tr>
+              <tr><td><code>keypath</code></td><td>私钥路径，支持 <code>~</code></td><td>—</td></tr>
+              <tr><td><code>agentpath</code></td><td>SSH Agent Socket 路径</td><td>—</td></tr>
+              <tr><td><code>jump</code></td><td>Jump Host 定义</td><td>—</td></tr>
+              <tr><td><code>children</code></td><td>嵌套 Server 或 Group</td><td>—</td></tr>
+              <tr><td><code>callback-shells</code></td><td>登录后发送的命令</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="reference-note">
+          <h3>配置文件查找顺序</h3>
+          <ol>
+            <li><code>~/.sshw</code></li>
+            <li><code>~/.sshw.yml</code></li>
+            <li><code>~/.sshw.yaml</code></li>
+            <li><code>./.sshw</code></li>
+            <li><code>./.sshw.yml</code></li>
+            <li><code>./.sshw.yaml</code></li>
+          </ol>
+          <p>找到第一个存在的文件后停止查找。</p>
+        </div>
+      </div>
+
+      <div class="example-tabs" data-tabs>
+        <div class="tab-list" role="tablist" aria-label="配置示例">
+          <button role="tab" aria-selected="true" aria-controls="panel-group" id="tab-group">嵌套分组</button>
+          <button role="tab" aria-selected="false" aria-controls="panel-jump" id="tab-jump" tabindex="-1">Jump Host</button>
+          <button role="tab" aria-selected="false" aria-controls="panel-callback" id="tab-callback" tabindex="-1">Callback</button>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-group" aria-labelledby="tab-group">
+          <pre><code>- name: production
+  children:
+    - name: api-1
+      alias: api
+      user: deploy
+      host: 10.20.0.11
+    - name: worker-1
+      user: deploy
+      host: 10.20.0.12</code></pre>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-jump" aria-labelledby="tab-jump" hidden>
+          <pre><code>- name: app via bastion
+  alias: app
+  user: appuser
+  host: 192.168.8.35
+  keypath: ~/.ssh/id_rsa
+  jump:
+    - user: ops
+      host: bastion.example.com
+      port: 2222
+      keypath: ~/.ssh/bastion_rsa</code></pre>
+        </div>
+        <div class="tab-panel" role="tabpanel" id="panel-callback" aria-labelledby="tab-callback" hidden>
+          <pre><code>- name: dev with startup commands
+  alias: dev
+  host: 192.168.8.35
+  callback-shells:
+    - { cmd: "cd /srv/app" }
+    - { delay: 1500, cmd: "docker ps" }</code></pre>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="build">
+      <div class="section-heading split-heading">
+        <div>
+          <p class="eyebrow">BUILD</p>
+          <h2>本地编译与交叉编译</h2>
+        </div>
+        <p><code>build.sh</code> 会注入版本信息，并把不同平台的产物放入独立目录。</p>
+      </div>
+      <div class="build-grid">
+        <div class="code-block large">
+          <pre><code># 当前平台
+./build.sh
+
+# Linux AMD64
+GOOS=linux GOARCH=amd64 VERSION=dev ./build.sh
+
+# 自定义输出目录
+OUTPUT_DIR=/tmp/sshw-build ./build.sh</code></pre>
+          <button type="button" data-copy="./build.sh">复制基础命令</button>
+        </div>
+        <div class="build-options">
+          <div><code>GOOS</code><span>目标操作系统</span></div>
+          <div><code>GOARCH</code><span>目标 CPU 架构</span></div>
+          <div><code>VERSION</code><span>写入二进制的版本</span></div>
+          <div><code>OUTPUT_DIR</code><span>产物根目录</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section faq alt" id="faq">
+      <div class="section-heading">
+        <p class="eyebrow">FAQ & SAFETY</p>
+        <h2>常见问题与安全提示</h2>
+      </div>
+      <div class="faq-list">
+        <details>
+          <summary>可以继续使用原来的 YAML 配置吗？</summary>
+          <p>可以。新版保持现有 YAML 字段和结构兼容，Config Web 只是提供另一种编辑方式。</p>
+        </details>
+        <details>
+          <summary>Config Web 会暴露到公网吗？</summary>
+          <p>默认不会。服务监听 <code>127.0.0.1:7899</code>，仅本机可访问。不要随意绑定公开网络地址。</p>
+        </details>
+        <details>
+          <summary>搜索没有结果后需要重新运行吗？</summary>
+          <p>不需要。可以继续输入或按 Backspace 回退，结果会即时恢复。</p>
+        </details>
+        <details>
+          <summary>可以把密码写进公开仓库吗？</summary>
+          <p>不要提交真实密码、Passphrase、私钥或生产主机信息。优先使用私钥或 SSH Agent。</p>
+        </details>
+      </div>
+    </section>
+
+    <section class="final-cta">
+      <p class="eyebrow">READY TO CONNECT?</p>
+      <h2>从第一台 Server 开始</h2>
+      <p>安装 sshw，写入一条配置，然后运行 <code>sshw</code>。</p>
+      <div class="hero-actions">
+        <a class="button primary" href="#quickstart">查看快速开始</a>
+        <a class="button secondary" href="https://github.com/cooker/sshw">在 GitHub 查看源码</a>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div>
+      <a class="brand" href="#top"><span class="brand-mark" aria-hidden="true">&gt;_</span><span>sshw</span></a>
+      <p>轻量、可搜索的 SSH 客户端包装工具。</p>
+    </div>
+    <div class="footer-links">
+      <a href="https://github.com/cooker/sshw">GitHub</a>
+      <a href="https://github.com/cooker/sshw/releases">Releases</a>
+      <a href="https://github.com/cooker/sshw/blob/master/LICENSE">MIT License</a>
+    </div>
+  </footer>
+
+  <div class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+</body>
+</html>

@@ -5,6 +5,7 @@
 </p>
 
 <p align="center">
+  <a href="https://cooker.github.io/sshw/">使用文档</a> ·
   <a href="https://github.com/yinheli/sshw/releases"><img src="https://img.shields.io/github/v/tag/yinheli/sshw?label=release" alt="最新版本"></a>
   <a href="./LICENSE"><img src="https://img.shields.io/github/license/yinheli/sshw" alt="许可证"></a>
   <a href="https://pkg.go.dev/github.com/yinheli/sshw"><img src="https://pkg.go.dev/badge/github.com/yinheli/sshw.svg" alt="Go package"></a>
