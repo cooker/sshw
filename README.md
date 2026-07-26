@@ -38,6 +38,19 @@ Install the latest version with Go:
 go install github.com/yinheli/sshw/cmd/sshw@latest
 ```
 
+Build the current checkout:
+
+```bash
+./build.sh
+```
+
+The binary is written to `dist/<os>-<arch>/sshw`. Set `GOOS`, `GOARCH`,
+`VERSION`, or `OUTPUT_DIR` to override the target, version, or output directory:
+
+```bash
+GOOS=linux GOARCH=amd64 VERSION=dev ./build.sh
+```
+
 You can also download prebuilt binaries from [GitHub Releases](https://github.com/yinheli/sshw/releases).
 
 ## First run
@@ -71,9 +84,11 @@ Or connect by alias:
 sshw dev
 ```
 
-Search all configured hosts before opening the selector:
+Open the interactive global host search. The optional initial keyword remains
+editable, and deleting characters restores previously filtered hosts:
 
 ```bash
+sshw -search
 sshw -search dev
 ```
 
@@ -100,7 +115,16 @@ To create or update `~/.sshw.yaml` from a local web UI, run:
 sshw -config
 ```
 
-The editor prints a local URL, serves only on `127.0.0.1` by default, and can add, edit, delete, and save hosts and groups. It supports common host fields, one jump host, callback commands, nested groups, and empty groups. To edit another file, pass `-config-file`:
+The editor opens the local URL in your default browser and also prints it in
+the terminal. It serves only on `127.0.0.1` by default. Its three-pane workspace
+supports nested group management, scoped search by server or group fields, and
+adding, editing, duplicating, moving, and deleting servers. It also supports
+common host fields, jump hosts, callback commands, empty groups, unsaved-change
+tracking, and keyboard save. The interface follows the browser language on first
+use and can switch between English, Simplified Chinese, Japanese, Korean, and
+Vietnamese. If the browser cannot be opened, the server keeps running and you
+can open the printed URL manually.
+To edit another file, pass `-config-file`:
 
 ```bash
 sshw -config -config-file ./.sshw.yaml
@@ -197,10 +221,14 @@ sshw -s
 sshw             open the interactive selector
 sshw <alias>     connect to a configured alias
 sshw -s          load entries from ~/.ssh/config
-sshw -search dev search hosts by name, alias, user, host, or port
+sshw -search [keyword] interactively search by name, alias, user, host, or port
+sshw -q [keyword] shorthand for -search
 sshw -config     edit ~/.sshw.yaml from a local web UI
+sshw -c          shorthand for -config
 sshw -version    print build and Go version
+sshw -v          shorthand for -version
 sshw -help       show flags
+sshw -h          shorthand for -help
 ```
 
 ## Notes

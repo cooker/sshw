@@ -38,6 +38,19 @@ Go で最新バージョンをインストールします。
 go install github.com/yinheli/sshw/cmd/sshw@latest
 ```
 
+現在のソースをビルドします。
+
+```bash
+./build.sh
+```
+
+バイナリは `dist/<os>-<arch>/sshw` に出力されます。`GOOS`、`GOARCH`、
+`VERSION`、`OUTPUT_DIR` でターゲット、バージョン、出力先を指定できます。
+
+```bash
+GOOS=linux GOARCH=amd64 VERSION=dev ./build.sh
+```
+
 事前ビルド済みバイナリは [GitHub Releases](https://github.com/yinheli/sshw/releases) からもダウンロードできます。
 
 ## 最初の実行
@@ -71,9 +84,10 @@ sshw
 sshw dev
 ```
 
-設定済みホストを検索してから選択画面を開きます。
+すべてのホストを対話的に検索します。初期キーワードは編集でき、文字を削除すると絞り込まれていたホストが再表示されます。
 
 ```bash
+sshw -search
 sshw -search dev
 ```
 
@@ -100,7 +114,7 @@ sshw -config
 sshw -config
 ```
 
-エディターはローカル URL を表示し、デフォルトでは `127.0.0.1` のみで待ち受けます。ホストとグループの追加、編集、削除、保存ができ、一般的なホスト項目、1 つの踏み台ホスト、コールバックコマンド、ネストしたグループ、空のグループに対応しています。別のファイルを編集するには `-config-file` を指定します。
+エディターはデフォルトブラウザーでローカル URL を開き、ターミナルにも URL を表示します。デフォルトでは `127.0.0.1` のみで待ち受けます。ホストとグループの追加、編集、削除、保存ができ、一般的なホスト項目、1 つの踏み台ホスト、コールバックコマンド、ネストしたグループ、空のグループに対応しています。ブラウザーを開けない場合もサーバーは動作を続けるため、表示された URL を手動で開けます。別のファイルを編集するには `-config-file` を指定します。
 
 ```bash
 sshw -config -config-file ./.sshw.yaml
@@ -197,10 +211,14 @@ sshw -s
 sshw             インタラクティブ選択画面を開く
 sshw <alias>     設定済みの別名へ接続
 sshw -s          ~/.ssh/config から項目を読み込む
-sshw -search dev 名前、別名、ユーザー、ホスト、ポートでホストを検索
+sshw -search [keyword] 名前、別名、ユーザー、ホスト、ポートで対話検索
+sshw -q [keyword] -search の短縮形
 sshw -config     ローカル Web UI で ~/.sshw.yaml を編集
+sshw -c          -config の短縮形
 sshw -version    ビルドバージョンと Go バージョンを表示
+sshw -v          -version の短縮形
 sshw -help       フラグを表示
+sshw -h          -help の短縮形
 ```
 
 ## 注意事項

@@ -38,6 +38,19 @@ Cài đặt phiên bản mới nhất bằng Go:
 go install github.com/yinheli/sshw/cmd/sshw@latest
 ```
 
+Biên dịch mã nguồn hiện tại:
+
+```bash
+./build.sh
+```
+
+Binary được ghi vào `dist/<os>-<arch>/sshw`. Có thể dùng `GOOS`, `GOARCH`,
+`VERSION` hoặc `OUTPUT_DIR` để chỉ định nền tảng, phiên bản và thư mục đầu ra:
+
+```bash
+GOOS=linux GOARCH=amd64 VERSION=dev ./build.sh
+```
+
 Bạn cũng có thể tải binary dựng sẵn từ [GitHub Releases](https://github.com/yinheli/sshw/releases).
 
 ## Chạy lần đầu
@@ -71,9 +84,11 @@ Hoặc kết nối bằng alias:
 sshw dev
 ```
 
-Tìm kiếm tất cả host đã cấu hình trước khi mở bộ chọn:
+Tìm kiếm tương tác trên tất cả host. Từ khóa ban đầu có thể chỉnh sửa và việc
+xóa ký tự sẽ khôi phục các host đã bị lọc:
 
 ```bash
+sshw -search
 sshw -search dev
 ```
 
@@ -100,7 +115,7 @@ sshw -config
 sshw -config
 ```
 
-Trình chỉnh sửa in ra một URL cục bộ, mặc định chỉ phục vụ trên `127.0.0.1`, và có thể thêm, sửa, xóa, lưu host và nhóm. Công cụ hỗ trợ các trường host phổ biến, một jump host, lệnh callback, nhóm lồng nhau và nhóm rỗng. Để chỉnh sửa tệp khác, truyền `-config-file`:
+Trình chỉnh sửa mở URL cục bộ trong trình duyệt mặc định và cũng in địa chỉ ra terminal. Mặc định công cụ chỉ phục vụ trên `127.0.0.1`, đồng thời có thể thêm, sửa, xóa, lưu host và nhóm. Công cụ hỗ trợ các trường host phổ biến, một jump host, lệnh callback, nhóm lồng nhau và nhóm rỗng. Nếu không thể mở trình duyệt, máy chủ vẫn tiếp tục chạy và bạn có thể mở URL đã in theo cách thủ công. Để chỉnh sửa tệp khác, truyền `-config-file`:
 
 ```bash
 sshw -config -config-file ./.sshw.yaml
@@ -197,10 +212,14 @@ sshw -s
 sshw             mở bộ chọn tương tác
 sshw <alias>     kết nối đến alias đã cấu hình
 sshw -s          tải các mục từ ~/.ssh/config
-sshw -search dev tìm host theo tên, alias, user, host hoặc port
+sshw -search [keyword] tìm kiếm tương tác theo tên, alias, user, host hoặc port
+sshw -q [keyword] dạng rút gọn của -search
 sshw -config     chỉnh sửa ~/.sshw.yaml từ web UI cục bộ
+sshw -c          dạng rút gọn của -config
 sshw -version    in phiên bản build và phiên bản Go
+sshw -v          dạng rút gọn của -version
 sshw -help       hiển thị các flag
+sshw -h          dạng rút gọn của -help
 ```
 
 ## Ghi chú

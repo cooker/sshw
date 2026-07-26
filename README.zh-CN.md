@@ -38,6 +38,19 @@
 go install github.com/yinheli/sshw/cmd/sshw@latest
 ```
 
+编译当前源码：
+
+```bash
+./build.sh
+```
+
+产物输出到 `dist/<操作系统>-<架构>/sshw`。可以通过 `GOOS`、`GOARCH`、
+`VERSION` 或 `OUTPUT_DIR` 指定目标平台、版本及输出目录：
+
+```bash
+GOOS=linux GOARCH=amd64 VERSION=dev ./build.sh
+```
+
 也可以从 [GitHub Releases](https://github.com/yinheli/sshw/releases) 下载预编译二进制文件。
 
 ## 第一次运行
@@ -71,9 +84,10 @@ sshw
 sshw dev
 ```
 
-先搜索所有已配置主机，再进入选择器：
+打开全局主机交互搜索。初始关键词可以继续编辑，删除字符会恢复之前过滤掉的主机：
 
 ```bash
+sshw -search
 sshw -search dev
 ```
 
@@ -100,7 +114,12 @@ sshw -config
 sshw -config
 ```
 
-该命令会输出一个本地 URL，默认只监听 `127.0.0.1`。界面支持新增、编辑、删除和保存主机与分组，支持常见主机字段、一个跳板机、回调命令、嵌套分组和空分组。要编辑其他文件，可以传入 `-config-file`：
+该命令会使用默认浏览器打开本地 URL，并同时在终端中输出地址；默认只监听
+`127.0.0.1`。三栏工作区支持嵌套分组管理、按 Server 或分组字段搜索，以及
+Server 的新增、编辑、复制、移动和删除。它也支持常见主机字段、跳板机、回调命令、
+空分组、未保存状态提示和键盘保存。界面首次打开时会跟随浏览器语言，也可以在
+英语、简体中文、日语、韩语和越南语之间切换。浏览器打开失败时，服务仍会继续
+运行，可以手动访问终端中输出的地址。要编辑其他文件，可以传入 `-config-file`：
 
 ```bash
 sshw -config -config-file ./.sshw.yaml
@@ -197,10 +216,14 @@ sshw -s
 sshw             打开交互式选择器
 sshw <alias>     连接到配置好的别名
 sshw -s          从 ~/.ssh/config 加载条目
-sshw -search dev 按名称、别名、用户、主机或端口搜索主机
+sshw -search [关键词] 按名称、别名、用户、主机或端口交互搜索主机
+sshw -q [关键词] -search 的短命令
 sshw -config     通过本地 Web 界面编辑 ~/.sshw.yaml
+sshw -c          -config 的短命令
 sshw -version    输出构建版本和 Go 版本
+sshw -v          -version 的短命令
 sshw -help       显示参数
+sshw -h          -help 的短命令
 ```
 
 ## 注意事项

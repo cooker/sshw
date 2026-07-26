@@ -38,6 +38,19 @@ Go로 최신 버전을 설치합니다.
 go install github.com/yinheli/sshw/cmd/sshw@latest
 ```
 
+현재 소스를 빌드합니다.
+
+```bash
+./build.sh
+```
+
+바이너리는 `dist/<os>-<arch>/sshw`에 생성됩니다. `GOOS`, `GOARCH`,
+`VERSION`, `OUTPUT_DIR`로 대상, 버전, 출력 디렉터리를 지정할 수 있습니다.
+
+```bash
+GOOS=linux GOARCH=amd64 VERSION=dev ./build.sh
+```
+
 사전 빌드된 바이너리는 [GitHub Releases](https://github.com/yinheli/sshw/releases)에서도 다운로드할 수 있습니다.
 
 ## 처음 실행하기
@@ -71,9 +84,10 @@ sshw
 sshw dev
 ```
 
-설정된 모든 호스트를 검색한 뒤 선택기를 엽니다.
+모든 호스트를 대화형으로 검색합니다. 초기 키워드는 편집할 수 있으며 문자를 삭제하면 필터링되었던 호스트가 다시 표시됩니다.
 
 ```bash
+sshw -search
 sshw -search dev
 ```
 
@@ -100,7 +114,7 @@ sshw -config
 sshw -config
 ```
 
-편집기는 로컬 URL을 출력하며, 기본적으로 `127.0.0.1`에서만 수신합니다. 호스트와 그룹을 추가, 편집, 삭제, 저장할 수 있고 일반 호스트 필드, 점프 호스트 1개, 콜백 명령, 중첩 그룹, 빈 그룹을 지원합니다. 다른 파일을 편집하려면 `-config-file`을 전달합니다.
+편집기는 기본 브라우저에서 로컬 URL을 열고 터미널에도 주소를 출력합니다. 기본적으로 `127.0.0.1`에서만 수신합니다. 호스트와 그룹을 추가, 편집, 삭제, 저장할 수 있고 일반 호스트 필드, 점프 호스트 1개, 콜백 명령, 중첩 그룹, 빈 그룹을 지원합니다. 브라우저를 열 수 없어도 서버는 계속 실행되므로 출력된 URL을 직접 열 수 있습니다. 다른 파일을 편집하려면 `-config-file`을 전달합니다.
 
 ```bash
 sshw -config -config-file ./.sshw.yaml
@@ -197,10 +211,14 @@ sshw -s
 sshw             대화형 선택기를 엽니다
 sshw <alias>     설정된 별칭으로 연결합니다
 sshw -s          ~/.ssh/config에서 항목을 읽습니다
-sshw -search dev 이름, 별칭, 사용자, 호스트, 포트로 호스트를 검색합니다
+sshw -search [keyword] 이름, 별칭, 사용자, 호스트, 포트로 대화형 검색
+sshw -q [keyword] -search의 단축 옵션
 sshw -config     로컬 웹 UI에서 ~/.sshw.yaml을 편집합니다
+sshw -c          -config의 단축 옵션
 sshw -version    빌드 버전과 Go 버전을 출력합니다
+sshw -v          -version의 단축 옵션
 sshw -help       플래그를 표시합니다
+sshw -h          -help의 단축 옵션
 ```
 
 ## 참고

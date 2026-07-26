@@ -1,0 +1,820 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>sshw config</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f4f6f8;
+      --panel: #fff;
+      --ink: #172033;
+      --muted: #667085;
+      --line: #dfe3e8;
+      --soft: #f8fafc;
+      --blue: #1769e0;
+      --blue-soft: #eaf2ff;
+      --amber: #a15c00;
+      --red: #b42318;
+      --green: #18794e;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font: 14px/1.45 Inter, ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select { font: inherit; }
+    button {
+      min-height: 36px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: var(--panel);
+      color: var(--ink);
+      padding: 7px 11px;
+      cursor: pointer;
+    }
+    button:hover { border-color: #aab3c0; background: var(--soft); }
+    button:focus-visible, input:focus-visible, select:focus-visible {
+      outline: 3px solid #b9d3ff;
+      outline-offset: 1px;
+      border-color: var(--blue);
+    }
+    button.primary { border-color: var(--blue); background: var(--blue); color: white; font-weight: 700; }
+    button.primary:hover { background: #0e57bf; }
+    button.danger { color: var(--red); }
+    button.icon { min-width: 36px; padding: 6px; }
+    button.link { border: 0; background: transparent; color: var(--blue); padding: 3px; min-height: 0; }
+    .topbar {
+      height: 68px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 0 20px;
+      color: #fff;
+      background: #101828;
+      border-bottom: 1px solid #273142;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; min-width: 220px; }
+    .mark {
+      display: grid;
+      place-items: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: #276ee8;
+      color: white;
+      font: 800 16px ui-monospace, SFMono-Regular, Menlo, monospace;
+    }
+    .brand strong { display: block; font-size: 16px; }
+    .brand small { color: #aeb9ca; }
+    .file {
+      min-width: 0;
+      flex: 1;
+      overflow: hidden;
+      color: #cbd5e1;
+      font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .save-area { display: flex; align-items: center; gap: 10px; }
+    .locale-select {
+      width: auto;
+      min-height: 34px;
+      border-color: #475467;
+      background: #1d2939;
+      color: #fff;
+      padding-block: 5px;
+    }
+    .save-state { color: #cbd5e1; font-size: 12px; white-space: nowrap; }
+    .save-state.dirty { color: #ffca75; }
+    .save-state.ok { color: #7ee2ad; }
+    .save-state.error { color: #ff9b94; }
+    .workspace {
+      height: calc(100vh - 68px);
+      display: grid;
+      grid-template-columns: 250px minmax(320px, 390px) minmax(440px, 1fr);
+      background: var(--panel);
+    }
+    .pane { min-width: 0; overflow: auto; border-right: 1px solid var(--line); }
+    .pane:last-child { border-right: 0; }
+    .pane-head {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      background: rgba(255,255,255,.96);
+      border-bottom: 1px solid var(--line);
+      padding: 15px 16px;
+    }
+    .head-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .pane h2 { margin: 0; font-size: 14px; letter-spacing: .01em; }
+    .count { color: var(--muted); font-size: 12px; font-weight: 500; }
+    .group-tree, .server-list { padding: 10px; }
+    .tree-row, .server-row {
+      width: 100%;
+      border-color: transparent;
+      text-align: left;
+      background: transparent;
+    }
+    .tree-row {
+      display: grid;
+      grid-template-columns: 20px minmax(0,1fr) auto;
+      align-items: center;
+      min-height: 38px;
+      padding: 6px 8px;
+    }
+    .tree-row.active { background: var(--blue-soft); color: #0f55b7; }
+    .tree-row .label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .tree-count { color: var(--muted); font-size: 11px; }
+    .search-wrap { position: relative; margin-top: 12px; }
+    .search-wrap span { position: absolute; left: 11px; top: 9px; color: var(--muted); }
+    .search-wrap input { padding-left: 32px; padding-right: 32px; }
+    .search-wrap button { position: absolute; right: 3px; top: 3px; border: 0; min-height: 30px; padding: 3px 8px; background: transparent; }
+    input, select {
+      width: 100%;
+      min-height: 38px;
+      border: 1px solid #cfd6df;
+      border-radius: 7px;
+      background: white;
+      color: var(--ink);
+      padding: 8px 10px;
+    }
+    .scope { margin-top: 9px; color: var(--muted); font-size: 12px; }
+    .server-list { display: grid; gap: 4px; }
+    .server-row { padding: 10px; border-radius: 8px; }
+    .server-row.active { border-color: #9fc2fa; background: var(--blue-soft); }
+    .server-title { display: flex; justify-content: space-between; gap: 8px; font-weight: 700; }
+    .server-alias { color: var(--blue); font-size: 11px; font-weight: 600; }
+    .target {
+      margin-top: 4px;
+      color: #344054;
+      font: 12px ui-monospace, SFMono-Regular, Menlo, monospace;
+      overflow-wrap: anywhere;
+    }
+    .path { margin-top: 5px; color: var(--muted); font-size: 11px; }
+    .empty { margin: 12px; padding: 26px 18px; border: 1px dashed #cdd4dd; border-radius: 9px; color: var(--muted); text-align: center; }
+    .editor-wrap { max-width: 920px; padding: 22px 24px 80px; }
+    .editor-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 22px; }
+    .editor-header h1 { margin: 0; font-size: 23px; }
+    .eyebrow { margin-bottom: 4px; color: var(--muted); font-size: 12px; }
+    .editor-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    form { display: grid; gap: 24px; }
+    fieldset { margin: 0; padding: 0; border: 0; }
+    legend { width: 100%; margin-bottom: 12px; padding-bottom: 8px; border-bottom: 1px solid var(--line); font-weight: 750; }
+    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 14px; }
+    label { display: grid; gap: 6px; color: #475467; font-size: 12px; font-weight: 650; }
+    .span-2 { grid-column: 1 / -1; }
+    .secret { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .subpanel { padding: 14px; border: 1px solid var(--line); border-radius: 9px; background: var(--soft); }
+    .subpanel[hidden] { display: none; }
+    .callback-list { display: grid; gap: 8px; }
+    .callback-row { display: grid; grid-template-columns: minmax(0,1fr) 130px auto; gap: 8px; align-items: end; }
+    .form-foot { display: flex; justify-content: space-between; gap: 10px; padding-top: 4px; }
+    .status-line { min-height: 20px; margin: 8px 16px 0; color: var(--muted); font-size: 12px; }
+    .status-line.error { color: var(--red); }
+    .status-line.ok { color: var(--green); }
+    kbd { border: 1px solid #667085; border-bottom-width: 2px; border-radius: 4px; padding: 1px 4px; color: #d0d5dd; font: 10px ui-monospace, monospace; }
+    [hidden] { display: none !important; }
+    @media (max-width: 1100px) {
+      .workspace { grid-template-columns: 220px 320px minmax(390px,1fr); }
+      .editor-wrap { padding-inline: 18px; }
+    }
+    @media (max-width: 780px) {
+      .topbar { height: auto; min-height: 68px; flex-wrap: wrap; padding-block: 12px; gap: 10px; }
+      .brand { min-width: auto; }
+      .file { order: 3; flex-basis: 100%; }
+      .workspace { height: auto; min-height: calc(100vh - 96px); grid-template-columns: 1fr; }
+      .pane { max-height: none; border-right: 0; border-bottom: 1px solid var(--line); }
+      .groups-pane { max-height: 310px; }
+      .servers-pane { max-height: 480px; }
+      .form-grid, .callback-row { grid-template-columns: 1fr; }
+      .span-2 { grid-column: auto; }
+      .editor-header { flex-direction: column; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><div class="mark">&gt;_</div><div><strong>sshw config</strong><small data-i18n="app.subtitle">Server workspace</small></div></div>
+    <div class="file" id="file-name" data-i18n="state.loadingConfig">Loading configuration…</div>
+    <div class="save-area">
+      <select class="locale-select" id="locale" data-i18n-aria-label="language.label">
+        <option value="en">English</option>
+        <option value="zh-CN">简体中文</option>
+        <option value="ja">日本語</option>
+        <option value="ko">한국어</option>
+        <option value="vi">Tiếng Việt</option>
+      </select>
+      <span class="save-state" id="save-state" data-i18n="state.loading">Loading…</span>
+      <button class="primary" id="save" type="button"><span data-i18n="action.save">Save</span> <kbd>⌘S</kbd></button>
+    </div>
+  </header>
+  <main class="workspace">
+    <aside class="pane groups-pane">
+      <div class="pane-head">
+        <div class="head-row"><h2 data-i18n="pane.groups">Groups</h2><button class="icon" id="add-group" type="button" data-i18n-title="action.addGroup" data-i18n-aria-label="action.addGroup">＋</button></div>
+      </div>
+      <div class="status-line" id="status" role="status" aria-live="polite"></div>
+      <nav class="group-tree" id="group-tree" data-i18n-aria-label="a11y.serverGroups"></nav>
+    </aside>
+    <section class="pane servers-pane">
+      <div class="pane-head">
+        <div class="head-row"><h2 id="server-heading" data-i18n="pane.allServers">All servers</h2><button id="add-server" type="button">＋ <span data-i18n="entity.server">Server</span></button></div>
+        <div class="search-wrap"><span aria-hidden="true">⌕</span><input id="search" type="search" data-i18n-placeholder="search.placeholder" data-i18n-aria-label="search.label" autocomplete="off"><button id="clear-search" type="button" data-i18n-title="search.clear" data-i18n-aria-label="search.clear">×</button></div>
+        <div class="scope" id="scope-summary"></div>
+      </div>
+      <div class="server-list" id="server-list"></div>
+    </section>
+    <section class="pane editor-pane">
+      <div class="empty" id="editor-empty" data-i18n="empty.editor">Select a server or group to manage it.</div>
+      <div class="editor-wrap" id="group-editor" hidden>
+        <div class="editor-header">
+          <div><div class="eyebrow" data-i18n="entity.groupUpper">GROUP</div><h1 id="group-title" data-i18n="entity.group">Group</h1></div>
+          <div class="editor-actions"><button id="add-subgroup" type="button">＋ <span data-i18n="entity.subgroup">Subgroup</span></button><button id="add-group-server" type="button">＋ <span data-i18n="entity.server">Server</span></button></div>
+        </div>
+        <form id="group-form">
+          <fieldset><legend data-i18n="section.groupDetails">Group details</legend><div class="form-grid">
+            <label><span data-i18n="field.name">Name</span><input name="group-name" required></label>
+            <label><span data-i18n="field.parentGroup">Parent group</span><select name="group-parent"></select></label>
+          </div></fieldset>
+          <div class="form-foot"><button class="danger" id="delete-group" type="button" data-i18n="action.deleteGroup">Delete group…</button><button class="primary" id="apply-group" type="button" data-i18n="action.apply">Apply changes</button></div>
+        </form>
+      </div>
+      <div class="editor-wrap" id="server-editor" hidden>
+        <div class="editor-header">
+          <div><div class="eyebrow" id="server-path" data-i18n="label.ungroupedUpper">UNGROUPED</div><h1 id="server-title" data-i18n="entity.server">Server</h1></div>
+          <div class="editor-actions"><button id="duplicate-server" type="button" data-i18n="action.duplicate">Duplicate</button></div>
+        </div>
+        <form id="server-form">
+          <fieldset><legend data-i18n="section.identity">Identity & connection</legend><div class="form-grid">
+            <label><span data-i18n="field.name">Name</span><input name="name" required></label>
+            <label><span data-i18n="field.alias">Alias</span><input name="alias"></label>
+            <label><span data-i18n="field.host">Host</span><input name="host" required placeholder="server.example.com"></label>
+            <label><span data-i18n="field.user">User</span><input name="user" placeholder="root"></label>
+            <label><span data-i18n="field.port">Port</span><input name="port" type="number" min="0" max="65535" step="1" inputmode="numeric" placeholder="22"></label>
+            <label><span data-i18n="field.group">Group</span><select name="parent"></select></label>
+          </div></fieldset>
+          <fieldset><legend data-i18n="section.authentication">Authentication</legend><div class="form-grid">
+            <label><span data-i18n="field.keyPath">Key path</span><input name="keypath" placeholder="~/.ssh/id_rsa"></label>
+            <label><span data-i18n="field.agentPath">Agent path</span><input name="agentpath"></label>
+            <label><span data-i18n="field.passphrase">Passphrase</span><input class="secret" name="passphrase" type="password" autocomplete="new-password"></label>
+            <label><span data-i18n="field.password">Password</span><input class="secret" name="password" type="password" autocomplete="new-password"></label>
+          </div></fieldset>
+          <fieldset>
+            <div class="head-row"><legend data-i18n="section.jumpHost">Jump host</legend><button id="toggle-jump" type="button" data-i18n="action.addJumpHost">Add jump host</button></div>
+            <div class="subpanel" id="jump-fields" hidden><div class="form-grid">
+              <label><span data-i18n="field.name">Name</span><input name="jump-name"></label>
+              <label><span data-i18n="field.host">Host</span><input name="jump-host"></label>
+              <label><span data-i18n="field.user">User</span><input name="jump-user"></label>
+              <label><span data-i18n="field.port">Port</span><input name="jump-port" type="number" min="0" max="65535" step="1" inputmode="numeric"></label>
+              <label><span data-i18n="field.keyPath">Key path</span><input name="jump-keypath"></label>
+              <label><span data-i18n="field.password">Password</span><input class="secret" name="jump-password" type="password" autocomplete="new-password"></label>
+            </div></div>
+          </fieldset>
+          <fieldset>
+            <div class="head-row"><legend data-i18n="section.callbacks">Callback commands</legend><button id="add-callback" type="button">＋ <span data-i18n="field.command">Command</span></button></div>
+            <div class="callback-list" id="callbacks"></div>
+          </fieldset>
+          <div class="form-foot"><button class="danger" id="delete-server" type="button" data-i18n="action.deleteServer">Delete server…</button><button class="primary" id="apply-server" type="button" data-i18n="action.apply">Apply changes</button></div>
+        </form>
+      </div>
+    </section>
+  </main>
+  <script id="i18n-catalog" type="application/json">
+  {
+    "en": {
+      "app.title":"sshw config","app.subtitle":"Server workspace","language.label":"Language",
+      "state.loadingConfig":"Loading configuration…","state.loading":"Loading…","state.saving":"Saving…","state.dirty":"Unsaved changes","state.saved":"Saved","state.saveFailed":"Save failed",
+      "action.save":"Save","action.addGroup":"Add group","action.addServer":"Add server","action.deleteGroup":"Delete group…","action.apply":"Apply changes","action.duplicate":"Duplicate","action.deleteServer":"Delete server…","action.addJumpHost":"Add jump host","action.removeJumpHost":"Remove jump host","action.remove":"Remove",
+      "pane.groups":"Groups","pane.allServers":"All servers","a11y.serverGroups":"Server groups",
+      "search.placeholder":"Search name, alias, host, user or group…","search.label":"Search servers","search.clear":"Clear search",
+      "empty.editor":"Select a server or group to manage it.","empty.search":"No servers match this search.","empty.scope":"No servers in this scope yet.",
+      "entity.group":"Group","entity.groupUpper":"GROUP","entity.subgroup":"Subgroup","entity.server":"Server",
+      "section.groupDetails":"Group details","section.identity":"Identity & connection","section.authentication":"Authentication","section.jumpHost":"Jump host","section.callbacks":"Callback commands",
+      "field.name":"Name","field.parentGroup":"Parent group","field.alias":"Alias","field.host":"Host","field.user":"User","field.port":"Port","field.group":"Group","field.keyPath":"Key path","field.agentPath":"Agent path","field.passphrase":"Passphrase","field.password":"Password","field.command":"Command","field.delay":"Delay ms","field.jumpPort":"Jump port","field.callbackDelay":"Callback delay",
+      "label.ungrouped":"Ungrouped","label.ungroupedUpper":"UNGROUPED","label.root":"Ungrouped (root)","label.unnamedGroup":"(unnamed group)","label.unnamedServer":"(unnamed server)","label.noHost":"No host",
+      "scope.all.one":"{count} result across all groups","scope.all.other":"{count} results across all groups","scope.group.one":"{count} result in this group and its subgroups","scope.group.other":"{count} results in this group and its subgroups",
+      "validation.integer":"{field} must be a whole number between 0 and {max}.","validation.requiredServer":"Complete the required server fields.","validation.requiredGroup":"Group name is required.",
+      "error.groupCycle":"A group cannot be moved into itself or one of its subgroups.","error.load":"Failed to load config.","error.save":"Failed to save config.",
+      "message.serverApplied":"Server changes applied locally.","message.groupApplied":"Group changes applied locally.","message.groupAdded":"New group added locally.","message.serverAdded":"New server added locally.","message.loaded":"Configuration loaded.","message.saved":"Configuration saved.","message.duplicated":"Server duplicated locally.","message.serverDeleted":"Server deleted locally.","message.groupDeleted":"Group deleted locally.",
+      "confirm.deleteServer":"Delete this server? The change is not written until Save.","confirm.deleteGroup":"Delete group “{name}” and its {servers} server(s) and {subgroups} subgroup(s)?"
+    },
+    "zh-CN": {
+      "app.title":"sshw 配置","app.subtitle":"服务器工作区","language.label":"语言",
+      "state.loadingConfig":"正在加载配置…","state.loading":"正在加载…","state.saving":"正在保存…","state.dirty":"有未保存的更改","state.saved":"已保存","state.saveFailed":"保存失败",
+      "action.save":"保存","action.addGroup":"添加分组","action.addServer":"添加服务器","action.deleteGroup":"删除分组…","action.apply":"应用更改","action.duplicate":"复制","action.deleteServer":"删除服务器…","action.addJumpHost":"添加跳板机","action.removeJumpHost":"移除跳板机","action.remove":"移除",
+      "pane.groups":"分组","pane.allServers":"全部服务器","a11y.serverGroups":"服务器分组",
+      "search.placeholder":"搜索名称、别名、主机、用户或分组…","search.label":"搜索服务器","search.clear":"清除搜索",
+      "empty.editor":"选择一个服务器或分组进行管理。","empty.search":"没有与搜索条件匹配的服务器。","empty.scope":"此范围内尚无服务器。",
+      "entity.group":"分组","entity.groupUpper":"分组","entity.subgroup":"子分组","entity.server":"服务器",
+      "section.groupDetails":"分组详情","section.identity":"身份与连接","section.authentication":"身份验证","section.jumpHost":"跳板机","section.callbacks":"回调命令",
+      "field.name":"名称","field.parentGroup":"上级分组","field.alias":"别名","field.host":"主机","field.user":"用户","field.port":"端口","field.group":"分组","field.keyPath":"密钥路径","field.agentPath":"SSH Agent 路径","field.passphrase":"密钥口令","field.password":"密码","field.command":"命令","field.delay":"延迟（毫秒）","field.jumpPort":"跳板机端口","field.callbackDelay":"回调延迟",
+      "label.ungrouped":"未分组","label.ungroupedUpper":"未分组","label.root":"未分组（根级）","label.unnamedGroup":"（未命名分组）","label.unnamedServer":"（未命名服务器）","label.noHost":"未设置主机",
+      "scope.all.one":"在所有分组中找到 {count} 个结果","scope.all.other":"在所有分组中找到 {count} 个结果","scope.group.one":"在此分组及其子分组中找到 {count} 个结果","scope.group.other":"在此分组及其子分组中找到 {count} 个结果",
+      "validation.integer":"{field} 必须是 0 到 {max} 之间的整数。","validation.requiredServer":"请填写服务器的必填字段。","validation.requiredGroup":"分组名称为必填项。",
+      "error.groupCycle":"不能将分组移动到自身或其子分组中。","error.load":"加载配置失败。","error.save":"保存配置失败。",
+      "message.serverApplied":"已在本地应用服务器更改。","message.groupApplied":"已在本地应用分组更改。","message.groupAdded":"已在本地添加新分组。","message.serverAdded":"已在本地添加新服务器。","message.loaded":"配置已加载。","message.saved":"配置已保存。","message.duplicated":"已在本地复制服务器。","message.serverDeleted":"已在本地删除服务器。","message.groupDeleted":"已在本地删除分组。",
+      "confirm.deleteServer":"要删除此服务器吗？点击“保存”之前，更改不会写入配置文件。","confirm.deleteGroup":"要删除分组“{name}”以及其中的 {servers} 个服务器和 {subgroups} 个子分组吗？"
+    },
+    "ja": {
+      "app.title":"sshw 設定","app.subtitle":"サーバーワークスペース","language.label":"言語",
+      "state.loadingConfig":"設定を読み込み中…","state.loading":"読み込み中…","state.saving":"保存中…","state.dirty":"未保存の変更があります","state.saved":"保存済み","state.saveFailed":"保存に失敗しました",
+      "action.save":"保存","action.addGroup":"グループを追加","action.addServer":"サーバーを追加","action.deleteGroup":"グループを削除…","action.apply":"変更を適用","action.duplicate":"複製","action.deleteServer":"サーバーを削除…","action.addJumpHost":"踏み台ホストを追加","action.removeJumpHost":"踏み台ホストを削除","action.remove":"削除",
+      "pane.groups":"グループ","pane.allServers":"すべてのサーバー","a11y.serverGroups":"サーバーグループ",
+      "search.placeholder":"名前、エイリアス、ホスト、ユーザー、グループを検索…","search.label":"サーバーを検索","search.clear":"検索をクリア",
+      "empty.editor":"管理するサーバーまたはグループを選択してください。","empty.search":"検索条件に一致するサーバーはありません。","empty.scope":"この範囲にはまだサーバーがありません。",
+      "entity.group":"グループ","entity.groupUpper":"グループ","entity.subgroup":"サブグループ","entity.server":"サーバー",
+      "section.groupDetails":"グループの詳細","section.identity":"接続情報","section.authentication":"認証","section.jumpHost":"踏み台ホスト","section.callbacks":"コールバックコマンド",
+      "field.name":"名前","field.parentGroup":"親グループ","field.alias":"エイリアス","field.host":"ホスト","field.user":"ユーザー","field.port":"ポート","field.group":"グループ","field.keyPath":"秘密鍵のパス","field.agentPath":"SSH エージェントのパス","field.passphrase":"パスフレーズ","field.password":"パスワード","field.command":"コマンド","field.delay":"遅延（ミリ秒）","field.jumpPort":"踏み台ホストのポート","field.callbackDelay":"コールバックの遅延",
+      "label.ungrouped":"グループなし","label.ungroupedUpper":"グループなし","label.root":"グループなし（ルート）","label.unnamedGroup":"（名前のないグループ）","label.unnamedServer":"（名前のないサーバー）","label.noHost":"ホスト未設定",
+      "scope.all.one":"すべてのグループで {count} 件","scope.all.other":"すべてのグループで {count} 件","scope.group.one":"このグループとサブグループ内に {count} 件","scope.group.other":"このグループとサブグループ内に {count} 件",
+      "validation.integer":"{field} は 0 から {max} までの整数で入力してください。","validation.requiredServer":"サーバーの必須項目を入力してください。","validation.requiredGroup":"グループ名は必須です。",
+      "error.groupCycle":"グループを自身またはそのサブグループ内へ移動することはできません。","error.load":"設定の読み込みに失敗しました。","error.save":"設定の保存に失敗しました。",
+      "message.serverApplied":"サーバーの変更をローカルに適用しました。","message.groupApplied":"グループの変更をローカルに適用しました。","message.groupAdded":"新しいグループをローカルに追加しました。","message.serverAdded":"新しいサーバーをローカルに追加しました。","message.loaded":"設定を読み込みました。","message.saved":"設定を保存しました。","message.duplicated":"サーバーをローカルに複製しました。","message.serverDeleted":"サーバーをローカルで削除しました。","message.groupDeleted":"グループをローカルで削除しました。",
+      "confirm.deleteServer":"このサーバーを削除しますか？「保存」するまで設定ファイルには書き込まれません。","confirm.deleteGroup":"グループ「{name}」と、その中のサーバー {servers} 台、サブグループ {subgroups} 個を削除しますか？"
+    },
+    "ko": {
+      "app.title":"sshw 설정","app.subtitle":"서버 작업 공간","language.label":"언어",
+      "state.loadingConfig":"설정을 불러오는 중…","state.loading":"불러오는 중…","state.saving":"저장 중…","state.dirty":"저장되지 않은 변경 사항","state.saved":"저장됨","state.saveFailed":"저장하지 못했습니다",
+      "action.save":"저장","action.addGroup":"그룹 추가","action.addServer":"서버 추가","action.deleteGroup":"그룹 삭제…","action.apply":"변경 사항 적용","action.duplicate":"복제","action.deleteServer":"서버 삭제…","action.addJumpHost":"점프 호스트 추가","action.removeJumpHost":"점프 호스트 제거","action.remove":"제거",
+      "pane.groups":"그룹","pane.allServers":"모든 서버","a11y.serverGroups":"서버 그룹",
+      "search.placeholder":"이름, 별칭, 호스트, 사용자 또는 그룹 검색…","search.label":"서버 검색","search.clear":"검색어 지우기",
+      "empty.editor":"관리할 서버 또는 그룹을 선택하십시오.","empty.search":"검색 조건과 일치하는 서버가 없습니다.","empty.scope":"이 범위에 서버가 없습니다.",
+      "entity.group":"그룹","entity.groupUpper":"그룹","entity.subgroup":"하위 그룹","entity.server":"서버",
+      "section.groupDetails":"그룹 세부 정보","section.identity":"식별 및 연결","section.authentication":"인증","section.jumpHost":"점프 호스트","section.callbacks":"콜백 명령",
+      "field.name":"이름","field.parentGroup":"상위 그룹","field.alias":"별칭","field.host":"호스트","field.user":"사용자","field.port":"포트","field.group":"그룹","field.keyPath":"키 경로","field.agentPath":"에이전트 경로","field.passphrase":"키 암호","field.password":"비밀번호","field.command":"명령","field.delay":"지연 시간(ms)","field.jumpPort":"점프 포트","field.callbackDelay":"콜백 지연 시간",
+      "label.ungrouped":"그룹 없음","label.ungroupedUpper":"그룹 없음","label.root":"그룹 없음(루트)","label.unnamedGroup":"(이름 없는 그룹)","label.unnamedServer":"(이름 없는 서버)","label.noHost":"호스트 없음",
+      "scope.all.one":"모든 그룹에서 결과 {count}개","scope.all.other":"모든 그룹에서 결과 {count}개","scope.group.one":"이 그룹과 하위 그룹에서 결과 {count}개","scope.group.other":"이 그룹과 하위 그룹에서 결과 {count}개",
+      "validation.integer":"{field}: 0에서 {max} 사이의 정수를 입력하십시오.","validation.requiredServer":"서버의 필수 필드를 모두 입력하십시오.","validation.requiredGroup":"그룹 이름을 입력하십시오.",
+      "error.groupCycle":"그룹을 자기 자신이나 하위 그룹으로 이동할 수 없습니다.","error.load":"설정을 불러오지 못했습니다.","error.save":"설정을 저장하지 못했습니다.",
+      "message.serverApplied":"서버 변경 사항이 로컬에 적용되었습니다.","message.groupApplied":"그룹 변경 사항이 로컬에 적용되었습니다.","message.groupAdded":"새 그룹이 로컬에 추가되었습니다.","message.serverAdded":"새 서버가 로컬에 추가되었습니다.","message.loaded":"설정을 불러왔습니다.","message.saved":"설정이 저장되었습니다.","message.duplicated":"서버가 로컬에 복제되었습니다.","message.serverDeleted":"서버가 로컬에서 삭제되었습니다.","message.groupDeleted":"그룹이 로컬에서 삭제되었습니다.",
+      "confirm.deleteServer":"이 서버를 삭제하시겠습니까? 저장하기 전까지는 파일에 반영되지 않습니다.","confirm.deleteGroup":"“{name}” 그룹과 서버 {servers}개, 하위 그룹 {subgroups}개를 삭제하시겠습니까?"
+    },
+    "vi": {
+      "app.title":"Cấu hình sshw","app.subtitle":"Không gian quản lý máy chủ","language.label":"Ngôn ngữ",
+      "state.loadingConfig":"Đang tải cấu hình…","state.loading":"Đang tải…","state.saving":"Đang lưu…","state.dirty":"Thay đổi chưa lưu","state.saved":"Đã lưu","state.saveFailed":"Không thể lưu",
+      "action.save":"Lưu","action.addGroup":"Thêm nhóm","action.addServer":"Thêm máy chủ","action.deleteGroup":"Xóa nhóm…","action.apply":"Áp dụng thay đổi","action.duplicate":"Nhân bản","action.deleteServer":"Xóa máy chủ…","action.addJumpHost":"Thêm máy chủ trung chuyển","action.removeJumpHost":"Xóa máy chủ trung chuyển","action.remove":"Xóa",
+      "pane.groups":"Nhóm","pane.allServers":"Tất cả máy chủ","a11y.serverGroups":"Nhóm máy chủ",
+      "search.placeholder":"Tìm theo tên, bí danh, host, người dùng hoặc nhóm…","search.label":"Tìm kiếm máy chủ","search.clear":"Xóa nội dung tìm kiếm",
+      "empty.editor":"Chọn máy chủ hoặc nhóm để quản lý.","empty.search":"Không có máy chủ phù hợp với nội dung tìm kiếm.","empty.scope":"Chưa có máy chủ trong phạm vi này.",
+      "entity.group":"Nhóm","entity.groupUpper":"NHÓM","entity.subgroup":"Nhóm con","entity.server":"Máy chủ",
+      "section.groupDetails":"Chi tiết nhóm","section.identity":"Danh tính và kết nối","section.authentication":"Xác thực","section.jumpHost":"Máy chủ trung chuyển","section.callbacks":"Lệnh callback",
+      "field.name":"Tên","field.parentGroup":"Nhóm cha","field.alias":"Bí danh","field.host":"Host","field.user":"Người dùng","field.port":"Cổng","field.group":"Nhóm","field.keyPath":"Đường dẫn khóa","field.agentPath":"Đường dẫn agent","field.passphrase":"Cụm mật khẩu","field.password":"Mật khẩu","field.command":"Lệnh","field.delay":"Độ trễ (ms)","field.jumpPort":"Cổng máy chủ trung chuyển","field.callbackDelay":"Độ trễ callback",
+      "label.ungrouped":"Chưa phân nhóm","label.ungroupedUpper":"CHƯA PHÂN NHÓM","label.root":"Chưa phân nhóm (gốc)","label.unnamedGroup":"(nhóm chưa đặt tên)","label.unnamedServer":"(máy chủ chưa đặt tên)","label.noHost":"Chưa có host",
+      "scope.all.one":"{count} kết quả trong tất cả nhóm","scope.all.other":"{count} kết quả trong tất cả nhóm","scope.group.one":"{count} kết quả trong nhóm này và các nhóm con","scope.group.other":"{count} kết quả trong nhóm này và các nhóm con",
+      "validation.integer":"{field} phải là số nguyên từ 0 đến {max}.","validation.requiredServer":"Hãy điền đầy đủ các trường bắt buộc của máy chủ.","validation.requiredGroup":"Bạn phải nhập tên nhóm.",
+      "error.groupCycle":"Không thể chuyển nhóm vào chính nó hoặc một nhóm con của nó.","error.load":"Không thể tải cấu hình.","error.save":"Không thể lưu cấu hình.",
+      "message.serverApplied":"Đã áp dụng thay đổi của máy chủ trên máy cục bộ.","message.groupApplied":"Đã áp dụng thay đổi của nhóm trên máy cục bộ.","message.groupAdded":"Đã thêm nhóm mới trên máy cục bộ.","message.serverAdded":"Đã thêm máy chủ mới trên máy cục bộ.","message.loaded":"Đã tải cấu hình.","message.saved":"Đã lưu cấu hình.","message.duplicated":"Đã nhân bản máy chủ trên máy cục bộ.","message.serverDeleted":"Đã xóa máy chủ trên máy cục bộ.","message.groupDeleted":"Đã xóa nhóm trên máy cục bộ.",
+      "confirm.deleteServer":"Xóa máy chủ này? Thay đổi chỉ được ghi vào tệp sau khi bạn lưu.","confirm.deleteGroup":"Xóa nhóm “{name}” cùng {servers} máy chủ và {subgroups} nhóm con?"
+    }
+  }
+  </script>
+  <script>
+    const i18nCatalog = JSON.parse(document.getElementById("i18n-catalog").textContent);
+    const supportedLocales = Object.keys(i18nCatalog);
+    let currentLocale = "en";
+    let lastNotice = null;
+
+    function normalizeLocale(locale) {
+      if (!locale) return null;
+      if (supportedLocales.includes(locale)) return locale;
+      const base = locale.toLowerCase().split("-")[0];
+      if (base === "zh") return "zh-CN";
+      return supportedLocales.find(item => item.toLowerCase() === base) || null;
+    }
+    function initialLocale() {
+      try {
+        const stored = normalizeLocale(localStorage.getItem("sshw.config.locale"));
+        if (stored) return stored;
+      } catch (_) {}
+      for (const locale of navigator.languages || [navigator.language]) {
+        const match = normalizeLocale(locale);
+        if (match) return match;
+      }
+      return "en";
+    }
+    function t(key, values = {}) {
+      const template = i18nCatalog[currentLocale][key] || i18nCatalog.en[key] || key;
+      return template.replace(/\{(\w+)\}/g, (_, name) => values[name] === undefined ? "{" + name + "}" : String(values[name]));
+    }
+    function tp(key, count, values = {}) {
+      const category = new Intl.PluralRules(currentLocale).select(count);
+      const suffix = i18nCatalog[currentLocale][key + "." + category] ? category : "other";
+      return t(key + "." + suffix, { ...values, count });
+    }
+    function translateStatic() {
+      document.querySelectorAll("[data-i18n]").forEach(element => { element.textContent = t(element.dataset.i18n); });
+      document.querySelectorAll("[data-i18n-placeholder]").forEach(element => { element.placeholder = t(element.dataset.i18nPlaceholder); });
+      document.querySelectorAll("[data-i18n-title]").forEach(element => { element.title = t(element.dataset.i18nTitle); });
+      document.querySelectorAll("[data-i18n-aria-label]").forEach(element => { element.setAttribute("aria-label", t(element.dataset.i18nAriaLabel)); });
+      document.documentElement.lang = currentLocale;
+      document.title = t("app.title");
+    }
+    function setLocale(locale, persist = true) {
+      currentLocale = normalizeLocale(locale) || "en";
+      $("locale").value = currentLocale;
+      if (persist) {
+        try { localStorage.setItem("sshw.config.locale", currentLocale); } catch (_) {}
+      }
+      translateStatic();
+      renderAll();
+      if (selectedKind === "group" && selectedNode) {
+        $("group-title").textContent = groupName(selectedNode);
+        fillGroupSelect($("group-form").elements["group-parent"], refFor(selectedNode).parent, selectedNode);
+      }
+      if (selectedKind === "server" && selectedNode) {
+        const ref = refFor(selectedNode);
+        $("server-title").textContent = selectedNode.name || selectedNode.alias || selectedNode.host || t("entity.server");
+        $("server-path").textContent = groupPath(ref.groups);
+        fillGroupSelect($("server-form").elements.parent, ref.parent);
+      }
+      setJumpVisible(hasJump);
+      setDirty(dirty);
+      if (lastNotice) setMessage(t(lastNotice.key, lastNotice.values), lastNotice.type, true);
+    }
+
+    let nodes = [];
+    let selectedGroup = null;
+    let selectedNode = null;
+    let selectedKind = "";
+    let hasJump = false;
+    let dirty = false;
+    let saving = false;
+    const $ = (id) => document.getElementById(id);
+
+    function clone(value) { return JSON.parse(JSON.stringify(value)); }
+    function isGroup(node) { return Array.isArray(node && node.children); }
+    function blankServer() { return { name:"", alias:"", host:"", user:"", port:0, keypath:"", agentpath:"", passphrase:"", password:"", callbackShells:[], jump:[] }; }
+    function blankGroup(name = "New group") { return { name, children:[] }; }
+    function normalizeNode(raw) {
+      const node = { ...blankServer(), ...(raw || {}) };
+      node.port = Number(node.port || 0);
+      node.callbackShells = Array.isArray(node.callbackShells) ? node.callbackShells.filter(Boolean).map(item => ({ ...item, delay:Number(item.delay || 0) })) : [];
+      node.jump = Array.isArray(node.jump) ? node.jump.filter(Boolean).map(normalizeNode) : [];
+      if (Array.isArray(raw && raw.children)) node.children = raw.children.filter(Boolean).map(normalizeNode);
+      else delete node.children;
+      return node;
+    }
+    function setMessage(message, type = "", preserveNotice = false) {
+      if (!preserveNotice) lastNotice = null;
+      $("status").textContent = message;
+      $("status").className = "status-line " + type;
+    }
+    function notify(key, values = {}, type = "") {
+      lastNotice = { key, values, type };
+      setMessage(t(key, values), type, true);
+    }
+    function setDirty(value = true) {
+      dirty = value;
+      const state = $("save-state");
+      state.textContent = saving ? t("state.saving") : dirty ? t("state.dirty") : t("state.saved");
+      state.className = "save-state " + (saving ? "" : dirty ? "dirty" : "ok");
+    }
+    function fail(err) {
+      setMessage(err.message || String(err), "error");
+      $("save-state").textContent = t("state.saveFailed");
+      $("save-state").className = "save-state error";
+    }
+    function readInteger(input, label, max = Number.MAX_SAFE_INTEGER) {
+      if (input.validity.badInput || input.validity.stepMismatch || input.validity.rangeUnderflow || input.validity.rangeOverflow) throw new Error(t("validation.integer", { field: label, max }));
+      const raw = input.value.trim();
+      if (!raw) return 0;
+      const value = Number(raw);
+      if (!Number.isSafeInteger(value) || value < 0 || value > max) throw new Error(t("validation.integer", { field: label, max }));
+      return value;
+    }
+    function walk(list = nodes, groups = [], parent = null, depth = 0, out = []) {
+      list.forEach((node, index) => {
+        const ref = { node, parent, list, index, depth, groups };
+        out.push(ref);
+        if (isGroup(node)) walk(node.children, groups.concat(node), node, depth + 1, out);
+      });
+      return out;
+    }
+    function refFor(node) { return walk().find(ref => ref.node === node) || null; }
+    function groupRefs() { return walk().filter(ref => isGroup(ref.node)); }
+    function serverRefs() { return walk().filter(ref => !isGroup(ref.node)); }
+    function groupName(group) { return group ? (group.name || t("label.unnamedGroup")) : t("label.ungrouped"); }
+    function groupPath(groups) { return groups.map(groupName).join(" / ") || t("label.ungrouped"); }
+    function descendantServerCount(group) {
+      const list = group ? group.children : nodes;
+      let count = 0;
+      list.forEach(node => { count += isGroup(node) ? descendantServerCount(node) : 1; });
+      return count;
+    }
+    function containsGroup(root, candidate) {
+      return root === candidate || (root.children || []).some(child => isGroup(child) && containsGroup(child, candidate));
+    }
+    function detach(node) {
+      const ref = refFor(node);
+      if (!ref) return;
+      ref.list.splice(ref.index, 1);
+    }
+    function targetList(group) { return group ? group.children : nodes; }
+    function moveNode(node, group) {
+      if (isGroup(node) && group && containsGroup(node, group)) throw new Error(t("error.groupCycle"));
+      const current = refFor(node);
+      if ((current && current.parent) === group) return;
+      detach(node);
+      targetList(group).push(node);
+    }
+    function optionLabel(group) {
+      const ref = refFor(group);
+      return ref ? groupPath(ref.groups.concat(group)) : t("label.ungrouped");
+    }
+    function fillGroupSelect(select, value, excluded = null) {
+      select.innerHTML = "";
+      const root = document.createElement("option");
+      root.value = "";
+      root.textContent = t("label.root");
+      select.appendChild(root);
+      groupRefs().forEach(ref => {
+        if (excluded && containsGroup(excluded, ref.node)) return;
+        const option = document.createElement("option");
+        option.value = String(groupRefs().findIndex(item => item.node === ref.node));
+        option.textContent = groupPath(ref.groups.concat(ref.node));
+        option._group = ref.node;
+        select.appendChild(option);
+      });
+      const match = Array.from(select.options).find(option => option._group === value);
+      select.value = match ? match.value : "";
+    }
+    function selectedOptionGroup(select) { return select.selectedOptions[0]._group || null; }
+
+    function renderGroups() {
+      const root = $("group-tree");
+      root.innerHTML = "";
+      const all = document.createElement("button");
+      all.type = "button";
+      all.className = "tree-row" + (selectedGroup === null ? " active" : "");
+      const icon = document.createElement("span"); icon.textContent = "⌂";
+      const label = document.createElement("span"); label.className = "label"; label.textContent = t("pane.allServers");
+      const count = document.createElement("span"); count.className = "tree-count"; count.textContent = descendantServerCount(null);
+      all.append(icon, label, count);
+      all.addEventListener("click", () => selectGroup(null));
+      root.appendChild(all);
+      groupRefs().forEach(ref => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "tree-row" + (selectedGroup === ref.node ? " active" : "");
+        row.style.paddingLeft = (8 + ref.depth * 17) + "px";
+        const folder = document.createElement("span"); folder.textContent = "▸";
+        const name = document.createElement("span"); name.className = "label"; name.textContent = groupName(ref.node);
+        const total = document.createElement("span"); total.className = "tree-count"; total.textContent = descendantServerCount(ref.node);
+        row.append(folder, name, total);
+        row.addEventListener("click", () => selectGroup(ref.node));
+        root.appendChild(row);
+      });
+    }
+    function queryMatches(ref, query) {
+      const terms = query.toLowerCase().trim().split(/\s+/).filter(Boolean);
+      if (!terms.length) return true;
+      const node = ref.node;
+      const haystack = [node.name, node.alias, node.host, node.user, node.port, groupPath(ref.groups)].join(" ").toLowerCase();
+      return terms.every(term => haystack.includes(term));
+    }
+    function inSelectedScope(ref) {
+      return !selectedGroup || ref.groups.includes(selectedGroup);
+    }
+    function visibleServers() {
+      const query = $("search").value;
+      return serverRefs().filter(ref => inSelectedScope(ref) && queryMatches(ref, query));
+    }
+    function renderServers() {
+      const root = $("server-list");
+      root.innerHTML = "";
+      const refs = visibleServers();
+      $("server-heading").textContent = selectedGroup ? groupName(selectedGroup) : t("pane.allServers");
+      $("scope-summary").textContent = tp(selectedGroup ? "scope.group" : "scope.all", refs.length);
+      if (!refs.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty";
+        empty.textContent = t($("search").value ? "empty.search" : "empty.scope");
+        root.appendChild(empty);
+        return;
+      }
+      refs.forEach(ref => {
+        const row = document.createElement("button");
+        row.type = "button";
+        row.className = "server-row" + (selectedNode === ref.node ? " active" : "");
+        const title = document.createElement("div"); title.className = "server-title";
+        const name = document.createElement("span"); name.textContent = ref.node.name || ref.node.alias || ref.node.host || t("label.unnamedServer");
+        const alias = document.createElement("span"); alias.className = "server-alias"; alias.textContent = ref.node.alias ? "@" + ref.node.alias : "";
+        title.append(name, alias);
+        const target = document.createElement("div"); target.className = "target";
+        target.textContent = (ref.node.user ? ref.node.user + "@" : "") + (ref.node.host || t("label.noHost")) + (ref.node.port ? ":" + ref.node.port : "");
+        const path = document.createElement("div"); path.className = "path"; path.textContent = groupPath(ref.groups);
+        row.append(title, target, path);
+        row.addEventListener("click", () => selectServer(ref.node));
+        root.appendChild(row);
+      });
+    }
+    function renderAll() { renderGroups(); renderServers(); }
+    function showEmpty() {
+      selectedNode = null; selectedKind = "";
+      $("editor-empty").hidden = false; $("group-editor").hidden = true; $("server-editor").hidden = true;
+    }
+    function selectGroup(group) {
+      try { commitCurrent(false); } catch (err) { return fail(err); }
+      selectedGroup = group;
+      selectedNode = group;
+      if (!group) { showEmpty(); renderAll(); return; }
+      selectedKind = "group";
+      $("editor-empty").hidden = true; $("group-editor").hidden = false; $("server-editor").hidden = true;
+      $("group-title").textContent = groupName(group);
+      $("group-form").elements["group-name"].value = group.name || "";
+      fillGroupSelect($("group-form").elements["group-parent"], refFor(group).parent, group);
+      renderAll();
+    }
+    function selectServer(server) {
+      try { commitCurrent(false); } catch (err) { return fail(err); }
+      selectedNode = server; selectedKind = "server";
+      $("editor-empty").hidden = true; $("group-editor").hidden = true; $("server-editor").hidden = false;
+      const ref = refFor(server);
+      $("server-title").textContent = server.name || server.alias || server.host || t("entity.server");
+      $("server-path").textContent = groupPath(ref.groups);
+      const form = $("server-form");
+      ["name","alias","host","user","port","keypath","agentpath","passphrase","password"].forEach(key => form.elements[key].value = server[key] || "");
+      fillGroupSelect(form.elements.parent, ref.parent);
+      hasJump = server.jump.length > 0;
+      setJumpVisible(hasJump);
+      const jump = server.jump[0] || blankServer();
+      ["name","host","user","port","keypath","password"].forEach(key => form.elements["jump-" + key].value = jump[key] || "");
+      renderCallbacks(server.callbackShells);
+      renderAll();
+    }
+    function readServer() {
+      const original = selectedNode;
+      const server = clone(original);
+      const form = $("server-form");
+      ["name","alias","host","user","keypath","agentpath","passphrase","password"].forEach(key => server[key] = form.elements[key].value.trim());
+      server.port = readInteger(form.elements.port, t("field.port"), 65535);
+      if (hasJump) {
+        const jump = server.jump[0] ? clone(server.jump[0]) : blankServer();
+        ["name","host","user","keypath","password"].forEach(key => jump[key] = form.elements["jump-" + key].value.trim());
+        jump.port = readInteger(form.elements["jump-port"], t("field.jumpPort"), 65535);
+        server.jump = jump.host ? [jump].concat(server.jump.slice(1)) : server.jump.slice(1);
+      } else server.jump = [];
+      server.callbackShells = Array.from(document.querySelectorAll(".callback-row")).map(row => ({
+        cmd: row.querySelector('[data-field="cmd"]').value.trim(),
+        delay: readInteger(row.querySelector('[data-field="delay"]'), t("field.callbackDelay"))
+      })).filter(item => item.cmd);
+      return server;
+    }
+    function replaceObject(target, source) {
+      Object.keys(target).forEach(key => delete target[key]);
+      Object.assign(target, source);
+    }
+    function commitServer(message = true) {
+      if (selectedKind !== "server" || !selectedNode) return;
+      const form = $("server-form");
+      if (!form.reportValidity()) throw new Error(t("validation.requiredServer"));
+      const parent = selectedOptionGroup(form.elements.parent);
+      const previousParent = refFor(selectedNode).parent;
+      const previousValue = JSON.stringify(selectedNode);
+      const updated = readServer();
+      replaceObject(selectedNode, updated);
+      moveNode(selectedNode, parent);
+      if (previousValue !== JSON.stringify(selectedNode) || previousParent !== parent) setDirty();
+      if (message) notify("message.serverApplied", {}, "ok");
+      const ref = refFor(selectedNode);
+      $("server-title").textContent = selectedNode.name || selectedNode.alias || selectedNode.host || t("entity.server");
+      $("server-path").textContent = groupPath(ref.groups);
+      renderAll();
+    }
+    function commitGroup(message = true) {
+      if (selectedKind !== "group" || !selectedNode) return;
+      const form = $("group-form");
+      if (!form.reportValidity()) throw new Error(t("validation.requiredGroup"));
+      const previousParent = refFor(selectedNode).parent;
+      const previousName = selectedNode.name;
+      const parent = selectedOptionGroup(form.elements["group-parent"]);
+      selectedNode.name = form.elements["group-name"].value.trim();
+      moveNode(selectedNode, parent);
+      if (previousName !== selectedNode.name || previousParent !== parent) setDirty();
+      if (message) notify("message.groupApplied", {}, "ok");
+      $("group-title").textContent = groupName(selectedNode);
+      renderAll();
+    }
+    function commitCurrent(message = false) {
+      if (selectedKind === "server") commitServer(message);
+      if (selectedKind === "group") commitGroup(message);
+    }
+    function addGroup(parent = selectedGroup) {
+      try { commitCurrent(false); } catch (err) { return fail(err); }
+      const group = blankGroup();
+      targetList(parent).push(group);
+      selectedGroup = parent;
+      setDirty();
+      selectGroup(group);
+      $("group-form").elements["group-name"].select();
+      notify("message.groupAdded", {}, "ok");
+    }
+    function addServer(parent = selectedGroup) {
+      try { commitCurrent(false); } catch (err) { return fail(err); }
+      const server = blankServer();
+      targetList(parent).push(server);
+      setDirty();
+      selectServer(server);
+      $("server-form").elements.name.focus();
+      notify("message.serverAdded", {}, "ok");
+    }
+    function renderCallbacks(callbacks) {
+      $("callbacks").innerHTML = "";
+      (callbacks || []).forEach(addCallbackRow);
+    }
+    function addCallbackRow(callback = { cmd:"", delay:0 }) {
+      const row = document.createElement("div"); row.className = "callback-row";
+      const command = document.createElement("label");
+      const commandLabel = document.createElement("span"); commandLabel.dataset.i18n = "field.command"; commandLabel.textContent = t("field.command"); command.appendChild(commandLabel);
+      const commandInput = document.createElement("input"); commandInput.dataset.field = "cmd"; commandInput.value = callback.cmd || ""; command.appendChild(commandInput);
+      const delay = document.createElement("label");
+      const delayLabel = document.createElement("span"); delayLabel.dataset.i18n = "field.delay"; delayLabel.textContent = t("field.delay"); delay.appendChild(delayLabel);
+      const delayInput = document.createElement("input"); delayInput.dataset.field = "delay"; delayInput.type = "number"; delayInput.min = "0"; delayInput.step = "1"; delayInput.inputMode = "numeric"; delayInput.value = callback.delay || ""; delay.appendChild(delayInput);
+      const remove = document.createElement("button"); remove.type = "button"; remove.className = "danger"; remove.dataset.i18n = "action.remove"; remove.textContent = t("action.remove"); remove.addEventListener("click", () => row.remove());
+      row.append(command, delay, remove); $("callbacks").appendChild(row);
+    }
+    function setJumpVisible(value) {
+      hasJump = value;
+      $("jump-fields").hidden = !value;
+      $("toggle-jump").textContent = t(value ? "action.removeJumpHost" : "action.addJumpHost");
+    }
+    async function loadConfig() {
+      const response = await fetch("/api/config");
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || t("error.load"));
+      nodes = (data.nodes || []).filter(Boolean).map(normalizeNode);
+      $("file-name").textContent = data.file;
+      selectedGroup = null;
+      showEmpty();
+      setDirty(false);
+      notify("message.loaded", {}, "ok");
+      renderAll();
+      $("search").focus();
+    }
+    async function saveConfig() {
+      if (saving) return;
+      commitCurrent(false);
+      saving = true; setDirty(dirty);
+      const submitted = JSON.stringify(nodes);
+      try {
+        const response = await fetch("/api/config", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({ nodes }) });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || t("error.save"));
+        dirty = JSON.stringify(nodes) !== submitted;
+        notify("message.saved", {}, "ok");
+        setDirty(dirty);
+      } finally { saving = false; setDirty(dirty); }
+    }
+
+    $("search").addEventListener("input", renderServers);
+    $("locale").addEventListener("change", event => setLocale(event.target.value));
+    $("clear-search").addEventListener("click", () => { $("search").value = ""; renderServers(); $("search").focus(); });
+    $("add-group").addEventListener("click", () => addGroup());
+    $("add-subgroup").addEventListener("click", () => addGroup(selectedNode));
+    $("add-server").addEventListener("click", () => addServer());
+    $("add-group-server").addEventListener("click", () => addServer(selectedNode));
+    $("apply-group").addEventListener("click", () => { try { commitGroup(true); } catch (err) { fail(err); } });
+    $("apply-server").addEventListener("click", () => { try { commitServer(true); } catch (err) { fail(err); } });
+    $("save").addEventListener("click", () => saveConfig().catch(fail));
+    $("toggle-jump").addEventListener("click", () => setJumpVisible(!hasJump));
+    $("add-callback").addEventListener("click", () => addCallbackRow());
+    $("duplicate-server").addEventListener("click", () => {
+      try {
+        commitServer(false);
+        const ref = refFor(selectedNode);
+        const duplicate = clone(selectedNode);
+        duplicate.name = (duplicate.name || duplicate.alias || "Server") + " copy";
+        ref.list.splice(ref.index + 1, 0, duplicate);
+        setDirty(); selectServer(duplicate); notify("message.duplicated", {}, "ok");
+      } catch (err) { fail(err); }
+    });
+    $("delete-server").addEventListener("click", () => {
+      if (!selectedNode || !confirm(t("confirm.deleteServer"))) return;
+      detach(selectedNode); showEmpty(); setDirty(); renderAll(); notify("message.serverDeleted", {}, "ok");
+    });
+    $("delete-group").addEventListener("click", () => {
+      if (!selectedNode) return;
+      const servers = descendantServerCount(selectedNode);
+      const subgroups = groupRefs().filter(ref => ref.groups.includes(selectedNode)).length;
+      if (!confirm(t("confirm.deleteGroup", { name: groupName(selectedNode), servers, subgroups }))) return;
+      detach(selectedNode);
+      selectedGroup = null; showEmpty(); setDirty(); renderAll(); notify("message.groupDeleted", {}, "ok");
+    });
+    document.addEventListener("keydown", event => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") { event.preventDefault(); saveConfig().catch(fail); }
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") { event.preventDefault(); $("search").focus(); $("search").select(); }
+      if (event.key === "Escape" && document.activeElement === $("search")) { $("search").value = ""; renderServers(); }
+    });
+    window.addEventListener("beforeunload", event => { if (dirty) { event.preventDefault(); event.returnValue = ""; } });
+    currentLocale = initialLocale();
+    $("locale").value = currentLocale;
+    translateStatic();
+    setJumpVisible(false);
+    loadConfig().catch(fail);
+  </script>
+</body>
+</html>

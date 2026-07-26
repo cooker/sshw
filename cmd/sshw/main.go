@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"os"
 	"runtime"
 	"strings"
@@ -15,14 +16,18 @@ import (
 const prev = "-parent-"
 
 var (
-	Build      = "devel"
-	V          = flag.Bool("version", false, "show version")
-	H          = flag.Bool("help", false, "show help")
-	S          = flag.Bool("s", false, "use local ssh config '~/.ssh/config'")
-	Search     = flag.String("search", "", "search hosts by name, alias, user, host, or port")
-	Config     = flag.Bool("config", false, "open web editor for ~/.sshw.yaml")
-	ConfigFile = flag.String("config-file", "~/.sshw.yaml", "config file used by -config")
-	ConfigAddr = flag.String("config-addr", "127.0.0.1:7899", "address used by -config")
+	Build       = "devel"
+	V           = flag.Bool("version", false, "show version")
+	VShort      = flag.Bool("v", false, "shorthand for -version")
+	H           = flag.Bool("help", false, "show help")
+	HShort      = flag.Bool("h", false, "shorthand for -help")
+	S           = flag.Bool("s", false, "use local ssh config '~/.ssh/config'")
+	Search      = flag.String("search", "", "search hosts by name, alias, user, host, or port")
+	SearchShort = flag.String("q", "", "shorthand for -search")
+	Config      = flag.Bool("config", false, "open web editor for ~/.sshw.yaml")
+	ConfigShort = flag.Bool("c", false, "shorthand for -config")
+	ConfigFile  = flag.String("config-file", "~/.sshw.yaml", "config file used by -config")
+	ConfigAddr  = flag.String("config-addr", "127.0.0.1:7899", "address used by -config")
 
 	log = sshw.GetLogger()
 
@@ -46,25 +51,26 @@ func findAlias(nodes []*sshw.Node, nodeAlias string) *sshw.Node {
 }
 
 func main() {
+	os.Args = normalizeSearchArgs(os.Args)
 	flag.Parse()
 	if !flag.Parsed() {
 		flag.Usage()
 		return
 	}
 
-	if *H {
+	if *H || *HShort {
 		flag.Usage()
 		return
 	}
 
-	if *V {
+	if *V || *VShort {
 		fmt.Println("sshw - ssh client wrapper for automatic login")
 		fmt.Println("  git version:", Build)
 		fmt.Println("  go version :", runtime.Version())
 		return
 	}
 
-	if *Config {
+	if *Config || *ConfigShort {
 		configFile, err := homedir.Expand(*ConfigFile)
 		if err != nil {
 			log.Error("config error", err)
@@ -91,8 +97,8 @@ func main() {
 		}
 	}
 
-	if *Search != "" {
-		node := chooseSearch(sshw.GetConfig(), *Search)
+	if query, requested := requestedSearch(); requested {
+		node := chooseSearch(sshw.GetConfig(), query)
 		if node == nil {
 			return
 		}
@@ -122,13 +128,82 @@ func main() {
 	client.Login()
 }
 
+func normalizeSearchArgs(args []string) []string {
+	normalized := append([]string(nil), args...)
+	for index, arg := range normalized {
+		if arg != "-search" && arg != "--search" && arg != "-q" {
+			continue
+		}
+		if index == len(normalized)-1 || strings.HasPrefix(normalized[index+1], "-") {
+			normalized[index] = arg + "="
+		}
+	}
+	return normalized
+}
+
+func requestedSearch() (string, bool) {
+	if flagWasSet("search") {
+		return *Search, true
+	}
+	if flagWasSet("q") {
+		return *SearchShort, true
+	}
+	return "", false
+}
+
+func flagWasSet(name string) bool {
+	found := false
+	flag.Visit(func(f *flag.Flag) {
+		if f.Name == name {
+			found = true
+		}
+	})
+	return found
+}
+
 func chooseSearch(trees []*sshw.Node, query string) *sshw.Node {
-	nodes := searchHosts(trees, query)
+	nodes := searchHosts(trees, "")
 	if len(nodes) == 0 {
-		fmt.Printf("no hosts found matching %q\n", query)
+		fmt.Println("no hosts configured")
 		return nil
 	}
-	return choose(nil, nodes)
+
+	return runSearch(nodes, query, os.Stdin, os.Stdout)
+}
+
+func runSearch(nodes []*sshw.Node, query string, stdin io.ReadCloser, stdout io.WriteCloser) *sshw.Node {
+	prompt := promptui.Select{
+		Label:             "select host",
+		Items:             nodes,
+		Templates:         templates,
+		Size:              20,
+		HideSelected:      true,
+		StartInSearchMode: true,
+		Stdin:             prependInput(query, stdin),
+		Stdout:            stdout,
+		Searcher: func(input string, index int) bool {
+			return nodeMatches(nodes[index], input)
+		},
+	}
+	index, _, err := prompt.Run()
+	if err != nil {
+		return nil
+	}
+	return nodes[index]
+}
+
+type inputReadCloser struct {
+	io.Reader
+}
+
+func (inputReadCloser) Close() error {
+	return nil
+}
+
+func prependInput(input string, reader io.Reader) io.ReadCloser {
+	return inputReadCloser{
+		Reader: io.MultiReader(strings.NewReader(input), reader),
+	}
 }
 
 func searchHosts(nodes []*sshw.Node, query string) []*sshw.Node {
