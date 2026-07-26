@@ -234,6 +234,20 @@ sshw -h          -help 的短命令
 - 如果省略 `port`，`sshw` 使用 `22`。
 - 跳板机支持目前使用配置中的第一个 `jump` 条目。
 
+## 支持项目
+
+如果 `sshw` 为你节省了时间，欢迎通过小额赞赏支持项目持续维护。感谢你的认可与支持。
+
+<p align="center">
+  <img src="./docs/wx.jpg" width="190" alt="微信支付和支付宝赞赏码">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./docs/usdt.jpg" width="240" alt="USDT TRON 网络收款二维码">
+</p>
+
+<p align="center">
+  <sub><strong>微信支付 / 支付宝</strong> · <strong>USDT（TRON）</strong>——转账 USDT 时请仅使用 TRON 网络。</sub>
+</p>
+
 ## 许可证
 
 [MIT](./LICENSE)

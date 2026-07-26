@@ -239,6 +239,21 @@ sshw -h          shorthand for -help
 - If `port` is omitted, `sshw` uses `22`.
 - Jump host support currently uses the first configured jump entry.
 
+## Support the project
+
+If `sshw` saves you time, you can support its continued development with a
+small donation. Thank you for helping keep the project maintained.
+
+<p align="center">
+  <img src="./docs/wx.jpg" width="190" alt="WeChat Pay and Alipay donation QR code">
+  &nbsp;&nbsp;&nbsp;&nbsp;
+  <img src="./docs/usdt.jpg" width="240" alt="USDT donation QR code on the TRON network">
+</p>
+
+<p align="center">
+  <sub><strong>WeChat Pay / Alipay</strong> · <strong>USDT (TRON)</strong> — use the TRON network only for USDT.</sub>
+</p>
+
 ## License
 
 [MIT](./LICENSE)
