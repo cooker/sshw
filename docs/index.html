@@ -3,35 +3,55 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="sshw 是一个支持搜索、分组、跳板机和 Web 配置的轻量 SSH 客户端包装工具。">
+  <meta name="description" content="sshw 是一个支持搜索、分组、跳板机和 Web 配置的轻量 SSH 客户端包装工具。" data-i18n-content="meta.description">
   <meta name="theme-color" content="#08110e">
-  <meta property="og:title" content="sshw — 更快地找到并连接 Server">
-  <meta property="og:description" content="用 YAML 管理 SSH Server，通过交互搜索或 Web 界面完成连接与配置。">
+  <meta property="og:title" content="sshw — 更快地找到并连接 Server" data-i18n-content="meta.ogTitle">
+  <meta property="og:description" content="用 YAML 管理 SSH Server，通过交互搜索或 Web 界面完成连接与配置。" data-i18n-content="meta.ogDescription">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://cooker.github.io/sshw/">
   <meta property="og:image" content="https://cooker.github.io/sshw/assets/og.png">
   <meta name="twitter:card" content="summary_large_image">
   <link rel="canonical" href="https://cooker.github.io/sshw/">
-  <title>sshw — SSH Server 搜索与管理</title>
+  <link rel="alternate" hreflang="zh-CN" href="https://cooker.github.io/sshw/?lang=zh-CN">
+  <link rel="alternate" hreflang="en" href="https://cooker.github.io/sshw/?lang=en">
+  <link rel="alternate" hreflang="ja" href="https://cooker.github.io/sshw/?lang=ja">
+  <link rel="alternate" hreflang="ko" href="https://cooker.github.io/sshw/?lang=ko">
+  <link rel="alternate" hreflang="vi" href="https://cooker.github.io/sshw/?lang=vi">
+  <link rel="alternate" hreflang="x-default" href="https://cooker.github.io/sshw/">
+  <title data-i18n="meta.title">sshw — SSH Server 搜索与管理</title>
   <link rel="stylesheet" href="./styles.css">
+  <script src="./i18n.js" defer></script>
   <script src="./app.js" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="#main">跳到正文</a>
+  <a class="skip-link" href="#main" data-i18n="a11y.skip">跳到正文</a>
 
   <header class="site-header">
     <div class="header-inner">
-      <a class="brand" href="#top" aria-label="sshw 首页">
+      <a class="brand" href="#top" aria-label="sshw 首页" data-i18n-aria-label="a11y.home">
         <span class="brand-mark" aria-hidden="true">&gt;_</span>
         <span>sshw</span>
       </a>
-      <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav">菜单</button>
-      <nav class="site-nav" id="site-nav" aria-label="主导航">
-        <a href="#install">安装</a>
-        <a href="#quickstart">快速开始</a>
-        <a href="#search">搜索</a>
+      <div class="header-actions">
+        <label class="language-picker">
+          <span class="visually-hidden" data-i18n="language.label">选择语言</span>
+          <span aria-hidden="true">文/A</span>
+          <select id="language-select" data-i18n-aria-label="language.label" aria-label="选择语言">
+            <option value="zh-CN">简体中文</option>
+            <option value="en">English</option>
+            <option value="ja">日本語</option>
+            <option value="ko">한국어</option>
+            <option value="vi">Tiếng Việt</option>
+          </select>
+        </label>
+        <button class="menu-button" type="button" aria-expanded="false" aria-controls="site-nav" data-i18n="nav.menu">菜单</button>
+      </div>
+      <nav class="site-nav" id="site-nav" aria-label="主导航" data-i18n-aria-label="a11y.primaryNav">
+        <a href="#install" data-i18n="nav.install">安装</a>
+        <a href="#quickstart" data-i18n="nav.quickstart">快速开始</a>
+        <a href="#search" data-i18n="nav.search">搜索</a>
         <a href="#config-ui">Config Web</a>
-        <a href="#reference">配置参考</a>
+        <a href="#reference" data-i18n="nav.reference">配置参考</a>
         <a class="nav-github" href="https://github.com/cooker/sshw">GitHub ↗</a>
       </nav>
     </div>
@@ -41,36 +61,36 @@
     <section class="hero" id="top">
       <div class="hero-grid">
         <div class="hero-copy">
-          <p class="eyebrow">SSH CLIENT WRAPPER</p>
-          <h1>更快地找到并<br><span>连接 Server</span></h1>
-          <p class="hero-lead">用 YAML 维护主机信息，通过可搜索的终端菜单或本地 Web 界面，管理分组并打开 SSH 会话。</p>
+          <p class="eyebrow" data-i18n="hero.eyebrow">SSH CLIENT WRAPPER</p>
+          <h1><span data-i18n="hero.titleLine1">更快地找到并</span><br><span data-i18n="hero.titleLine2">连接 Server</span></h1>
+          <p class="hero-lead" data-i18n="hero.lead">用 YAML 维护主机信息，通过可搜索的终端菜单或本地 Web 界面，管理分组并打开 SSH 会话。</p>
           <div class="hero-actions">
-            <a class="button primary" href="#quickstart">5 分钟开始使用</a>
-            <a class="button secondary" href="https://github.com/cooker/sshw/releases">下载 Release</a>
+            <a class="button primary" href="#quickstart" data-i18n="hero.start">5 分钟开始使用</a>
+            <a class="button secondary" href="https://github.com/cooker/sshw/releases" data-i18n="hero.download">下载 Release</a>
           </div>
           <div class="install-line">
             <code>go install github.com/yinheli/sshw/cmd/sshw@latest</code>
-            <button class="copy-button" type="button" data-copy="go install github.com/yinheli/sshw/cmd/sshw@latest" aria-label="复制安装命令">复制</button>
+            <button class="copy-button" type="button" data-copy="go install github.com/yinheli/sshw/cmd/sshw@latest" aria-label="复制安装命令" data-i18n="common.copy" data-i18n-aria-label="a11y.copyInstall">复制</button>
           </div>
         </div>
-        <div class="hero-terminal" aria-label="sshw 使用示例">
+        <div class="hero-terminal" aria-label="sshw 使用示例" data-i18n-aria-label="a11y.usageExample">
           <div class="terminal-bar">
             <span class="terminal-dots" aria-hidden="true"><i></i><i></i><i></i></span>
             <span>~/.sshw.yaml</span>
           </div>
           <div class="terminal-body">
             <p><span class="prompt">$</span> sshw -search prod</p>
-            <p class="terminal-label">select host</p>
+            <p class="terminal-label" data-i18n="terminal.selectHost">select host</p>
             <p class="selected"><span>›</span> production / api-1</p>
             <p class="muted">root@10.20.0.11:2222</p>
             <p class="terminal-gap"><span class="prompt">$</span> sshw -config</p>
-            <p class="success">✓ config UI opened in browser</p>
+            <p class="success" data-i18n="terminal.configOpened">✓ config UI opened in browser</p>
           </div>
         </div>
       </div>
-      <div class="feature-strip" aria-label="核心功能">
-        <span>交互搜索</span>
-        <span>嵌套分组</span>
+      <div class="feature-strip" aria-label="核心功能" data-i18n-aria-label="a11y.coreFeatures">
+        <span data-i18n="features.search">交互搜索</span>
+        <span data-i18n="features.groups">嵌套分组</span>
         <span>Jump Host</span>
         <span>Config Web</span>
         <span>Callback Commands</span>
@@ -80,33 +100,33 @@
     <section class="section intro" id="overview">
       <div class="section-heading">
         <p class="eyebrow">WHY SSHW</p>
-        <h2>把连接信息写一次，之后只需搜索和选择</h2>
-        <p>sshw 读取 YAML 或 <code>~/.ssh/config</code>，自动处理用户、端口、密钥、密码、SSH Agent、跳板机和登录后命令。</p>
+        <h2 data-i18n="overview.title">把连接信息写一次，之后只需搜索和选择</h2>
+        <p data-i18n-html="overview.lead">sshw 读取 YAML 或 <code>~/.ssh/config</code>，自动处理用户、端口、密钥、密码、SSH Agent、跳板机和登录后命令。</p>
       </div>
       <figure class="demo-frame">
-        <img src="./assets/demo.gif" alt="sshw 交互式终端选择与连接演示" width="841" height="431" loading="lazy">
-        <figcaption>在终端中浏览配置、选择目标并打开 SSH 会话。</figcaption>
+        <img src="./assets/demo.gif" alt="sshw 交互式终端选择与连接演示" data-i18n-alt="a11y.demoAlt" width="841" height="431" loading="lazy">
+        <figcaption data-i18n="overview.caption">在终端中浏览配置、选择目标并打开 SSH 会话。</figcaption>
       </figure>
       <div class="benefit-grid">
         <article>
           <span class="card-index">01</span>
-          <h3>少记命令</h3>
-          <p>使用别名直连，或从交互列表中选择目标，不再重复输入完整的 SSH 参数。</p>
+          <h3 data-i18n="overview.lessCommandsTitle">少记命令</h3>
+          <p data-i18n="overview.lessCommandsText">使用别名直连，或从交互列表中选择目标，不再重复输入完整的 SSH 参数。</p>
         </article>
         <article>
           <span class="card-index">02</span>
-          <h3>容易整理</h3>
-          <p>按团队、环境或网段建立嵌套分组，大量 Server 也能保持清晰。</p>
+          <h3 data-i18n="overview.organizeTitle">容易整理</h3>
+          <p data-i18n="overview.organizeText">按团队、环境或网段建立嵌套分组，大量 Server 也能保持清晰。</p>
         </article>
         <article>
           <span class="card-index">03</span>
-          <h3>灵活认证</h3>
-          <p>支持密码、私钥、Passphrase、SSH Agent 和 Keyboard Interactive。</p>
+          <h3 data-i18n="overview.authTitle">灵活认证</h3>
+          <p data-i18n="overview.authText">支持密码、私钥、Passphrase、SSH Agent 和 Keyboard Interactive。</p>
         </article>
         <article>
           <span class="card-index">04</span>
-          <h3>本地管理</h3>
-          <p>Config Web 默认只监听本机地址，保存时使用安全的原子替换流程。</p>
+          <h3 data-i18n="overview.localTitle">本地管理</h3>
+          <p data-i18n="overview.localText">Config Web 默认只监听本机地址，保存时使用安全的原子替换流程。</p>
         </article>
       </div>
     </section>
